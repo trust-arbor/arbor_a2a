@@ -19,6 +19,26 @@ defmodule Arbor.A2A.HTTP do
 
   def validate_url(_), do: {:error, :invalid_url}
 
+  @doc false
+  def tls_options(opts) do
+    options = Keyword.get(opts, :tls_options, [])
+    allowed = [:certfile, :keyfile, :cert, :key, :password, :cacertfile, :cacerts]
+
+    if Keyword.keyword?(options) and Enum.all?(Keyword.keys(options), &(&1 in allowed)) do
+      {:ok,
+       Keyword.merge([cacertfile: CAStore.file_path()], options) |> without_duplicate_cas(options)}
+    else
+      {:error, :invalid_tls_options}
+    end
+  end
+
+  defp without_duplicate_cas(options, provided),
+    do:
+      if(Keyword.has_key?(provided, :cacerts),
+        do: Keyword.delete(options, :cacertfile),
+        else: options
+      )
+
   def request(method, url, headers, body, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 10_000)
     limit = Keyword.get(opts, :max_response_bytes, 1_048_576)
@@ -26,12 +46,17 @@ defmodule Arbor.A2A.HTTP do
 
     with true <- valid_limits?(timeout, limit),
          {:ok, uri} <- validate_url(url),
+         {:ok, tls_options} <- tls_options(opts),
          {:ok, conn} <-
-           Mint.HTTP1.connect(String.to_existing_atom(uri.scheme), uri.host, uri.port,
+           Mint.HTTP1.connect(
+             String.to_existing_atom(uri.scheme),
+             Keyword.get(opts, :connect_address, uri.host),
+             uri.port,
+             hostname: uri.host,
              mode: :passive,
              transport_opts:
                [timeout: timeout] ++
-                 if(uri.scheme == "https", do: [cacertfile: CAStore.file_path()], else: [])
+                 if(uri.scheme == "https", do: tls_options, else: [])
            ) do
       try do
         case Mint.HTTP1.request(conn, method, request_path(uri), headers, body) do

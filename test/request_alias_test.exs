@@ -58,6 +58,7 @@ defmodule Arbor.A2A.RequestAliasTest do
     input = %{
       "message" => %{
         "message_id" => "m",
+        "role" => "ROLE_USER",
         "metadata" => metadata,
         "parts" => [%{"data" => data, "media_type" => "application/json", "metadata" => metadata}]
       },

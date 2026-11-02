@@ -1,19 +1,27 @@
 # ArborA2A usage rules
 
-- Use `Arbor.A2A.Client` for supported JSON-RPC calls and mount `HttpPlug` in a
-  host-owned listener. Supervise a TaskStore explicitly; no durable job engine
-  is created implicitly.
-- Preserve principal, tenant, context and task bindings. Share public issuer
-  metadata where appropriate, not credentials or authorization across resources.
-- Return a terminal/interrupted task for blocking SendMessage, or explicitly
-  request nonblocking mode. Return direct replies with the supplied context ID.
-- Implement `handle_cancel/2` only when host work can actually be stopped.
-  Callback shutdown cannot undo external side effects.
-- Acquire OAuth access tokens through the host token provider, which may call
-  OIDCC directly. Verify incoming access tokens independently; never use an
-  ID token as a resource access token.
-- Apply outbound URL trust policy before accepting externally supplied URLs.
-  Client discovery refuses cross-origin interface selection and sends no token.
-- Handle timeouts as unknown remote outcomes. The library does not replay calls.
-- Consult docs/COVERAGE.md before assuming streaming, push, signed cards,
-  complete OAuth/OIDC or additional bindings are implemented.
+- Supervise TaskStore and listeners explicitly. Use Client for JSON-RPC/REST,
+  generated stubs for gRPC and the optional gRPC server macro for that binding.
+- Preserve principal, tenant, context and task bindings. Use stable identities
+  with persistence; do not share credentials across issuers or resources.
+- Return a direct message or validated task, or `{:async, function}` for managed
+  work. Blocking sends wait for terminal/interrupted state; immediate mode may
+  acknowledge submitted work. Emit updates with the supplied handler context.
+- Managed cancellation stops owned workers. Host-owned work needs a truthful
+  `handle_cancel/2` acknowledgement. Shutdown cannot undo external side effects.
+- Persist explicitly when restart recovery is needed. The supplied file adapter
+  has one writer and does not replay business work or provide cluster consensus.
+- Handle slow-consumer/disconnect errors and reconnect by subscribing again;
+  streams are live and do not promise replay. Do not cancel work merely because
+  a reader disconnects.
+- Acquire OAuth access tokens through direct OIDCC calls and a token provider;
+  independently verify incoming access tokens and application authorization.
+  ID tokens are not resource credentials. Card metadata does not establish trust.
+- Treat webhook delivery as duplicate-capable. Retain the default destination
+  policy unless trusted host configuration explicitly permits private services.
+  Reconfigure any private policy on store restart with `push_options:`.
+- Verify signed cards with host trust anchors and allowed algorithms. Configure
+  extended-card authentication and implement the semantics of advertised extensions.
+- Treat call timeouts as unknown outcomes; calls and business side effects are
+  never automatically replayed. Keep the optional gRPC dependency mitigation.
+- Consult docs/COVERAGE.md and docs/REQUIREMENTS.md for scope and evidence limits.

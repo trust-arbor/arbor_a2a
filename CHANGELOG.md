@@ -9,3 +9,12 @@
   interop, pinned specification sources, evidence receipts and CI scaffolding.
 - Protocol coverage, authentication boundaries, examples and remaining work
   documented. No release or full-protocol certification is claimed.
+- Completed the standard-operation implementation surface: live streaming and
+  subscriptions, managed work/cancellation/recovery, durable state/outbox, push
+  notification configuration/delivery, extended/signed cards and extensions.
+- Added canonical generated protobuf validation/types, REST client/Plug and an
+  optional gRPC server; preserved ProtoJSON Value null in the binary binding.
+- Qualified additional original TCK assertions, real REST/gRPC/SSE SDK peers,
+  direct OIDCC exchanges against Keycloak, mutual TLS and cold package consumers.
+- Added a normative prose inventory, managed streaming example, expanded CI and
+  explicit upstream-conformance/dependency-security qualifications.

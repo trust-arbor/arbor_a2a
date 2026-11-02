@@ -69,7 +69,7 @@ def verify_junit(path, expected):
     cases = list(ET.parse(path).iter('testcase'))
     if not cases or any(c.find('failure') is not None or c.find('error') is not None for c in cases):
         raise RuntimeError('Conformance did not produce an all-passing selected test run')
-    skipped = {c.attrib['name']: c.find('skipped').attrib.get('message', '') for c in cases if c.find('skipped') is not None}
+    skipped = {c.attrib.get('classname', '') + '::' + c.attrib['name']: c.find('skipped').attrib.get('message', '') for c in cases if c.find('skipped') is not None}
     identities = [c.attrib.get('classname', '') + '::' + c.attrib['name'] for c in cases]
     if len(identities) != len(set(identities)):
         raise RuntimeError('Duplicate conformance test identity')
@@ -120,6 +120,12 @@ def interop():
     return results
 
 
+def verify_sdk(manifest):
+    path = ROOT / 'test/interop/node_modules/@a2a-js/sdk/package.json'
+    if not path.exists() or json.loads(path.read_text())['version'] != manifest['sdk']['version']:
+        raise RuntimeError('Installed SDK does not match the reviewed manifest; run npm ci')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('kind', choices=['interop', 'conformance'])
@@ -127,6 +133,8 @@ def main():
     REPORTS.mkdir(exist_ok=True)
     manifest = json.loads(MANIFEST.read_text())
     before = source_digest()
+    if args.kind == 'interop':
+        verify_sdk(manifest)
     result = interop() if args.kind == 'interop' else conformance(manifest)
     if source_digest() != before:
         raise RuntimeError('Implementation inputs changed during qualification')

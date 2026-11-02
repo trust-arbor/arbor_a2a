@@ -1,65 +1,90 @@
 # Architecture
 
-The OTP application starts a bounded `Arbor.A2A.Executor` task supervisor.
-Hosts own the HTTP listener and one or more supervised `Arbor.A2A.TaskStore`
-processes. A `Server` struct binds an agent handler, store, card, tenant and
-callback deadline. Server callbacks execute concurrently and have no implicit
-mutable handler state.
-
-For tenant-routed interfaces, configure the same tenant string in the card's
-`supportedInterfaces` entry and `Server`'s `:tenant` option. Explicit clients
-also pass `tenant: value` to `Client.new/2`; that value is included in every
-request. Host routing and stable authenticated principal identifiers determine
-the partition. A card's tenant declaration alone does not configure a server.
+The application supervises a bounded executor, subscription coordinator and
+webhook dispatcher. The host supervises task stores and HTTP/gRPC listeners.
+A `Server` binds a handler, store, public card, optional extended card, tenant,
+webhook policy and callback deadline. Listener configuration remains explicit.
 
 ```mermaid
 flowchart LR
-  Client[Arbor.A2A.Client] --> HTTP[HTTP / JSON-RPC]
-  HTTP --> Plug[Arbor.A2A.HttpPlug]
-  Plug --> Auth[Host access-token verifier]
-  Auth --> Server[Arbor.A2A.Server]
-  Server --> Handler[Host agent handler]
-  Server --> Store[Partitioned TaskStore]
-  Client --> RPC[Arbor.RPC.JSONRPC]
-  Server --> RPC
+  Client[Client or generated gRPC stub] --> Binding[JSON-RPC / REST / gRPC]
+  Binding --> Auth[Host authentication]
+  Auth --> Server[Shared A2A dispatch and schema]
+  Server --> Handler[Agent handler]
+  Server --> Store[Partitioned task store]
+  Handler --> Executor[Managed work or host work]
+  Executor --> Store
+  Store --> Events[Bounded live subscriptions]
+  Store --> Outbox[Persistent webhook outbox]
 ```
 
-The client is an immutable connection configuration, not an owner of global
-token/session state. Requests acquire a token from the host when configured,
-open one HTTP connection, preserve a finite network deadline, verify response
-IDs and close the connection. Calls are never retried automatically; a timeout
-has an unknown remote outcome. Discovery sends no token and rejects a selected
-interface on another origin. URLs are explicit host configuration; the Mint
-boundary is not a DNS-pinned public-network SSRF filter. Hosts must apply their
-outbound network policy to untrusted inputs.
+All task and configuration access uses `{principal, tenant}`. Principals must
+be stable authenticated identities for persistent stores. Configure a card's
+interface tenant and the server's tenant consistently. The client sends its
+configured tenant on every call; REST also routes it through the URL prefix.
+Application authorization beyond identity/tenant partitioning remains a host
+duty. Unauthenticated access uses the shared `:anonymous` identity.
 
-The Plug authenticates before reading an RPC body, imposes a request size bound,
-and returns authentication failures at the HTTP layer. Valid A2A/RPC calls
-return typed JSON-RPC results/errors. Hosts configure HTTPS, access controls,
-reverse-proxy trust and listener binding. A public card is served separately
-with a cache lifetime; signed/extended card support is not implemented.
+The immutable HTTP client opens and closes an owned socket per operation.
+Credentials are obtained per call, omitted from discovery and redacted from
+inspection. TLS verifies the URL hostname; optional client certificates and
+custom trust roots cannot disable peer verification. The finite request client
+and synchronous streaming reducer impose deadlines and byte/event bounds.
+Halting a streaming reducer closes its socket. Calls are not automatically
+retried: a timeout has an unknown business outcome.
 
-`TaskStore` partitions records by `{principal, tenant}`. It bounds entry count
-(1,000 by default), per-task JSON size (64 KiB) and TTL (one hour). Terminal
-tasks cannot be overwritten with another state or context. Page tokens are
-HMAC-protected and bind the caller, filters and cursor to one store lifetime.
-Pagination orders by newest status timestamp with task ID as a stable tie-break;
-tasks without timestamps follow timestamped tasks. Cursors retain that sort
-key. This is a live view, not a consistent snapshot. Expiration is lazy
-on store operations. Restart discards records and token keys. Durable storage,
-resource quotas across services and distributed execution remain future work.
+The JSON-RPC binding reuses ArborRPC. Schema-aware request/result validation
+uses generated types from the pinned canonical proto, retains arbitrary
+Struct/Value keys, accepts protobuf field aliases, enum numbers, integer strings
+and base64 alphabets, and ignores unknown fields for forward compatibility.
+Alternate spellings of a known field in one object are rejected. Required field
+annotations and A2A roles, identities, history and state semantics are checked
+in addition to protobuf scalar types.
 
-An agent callback receives server-assigned task/context IDs, any prior task,
-and trusted caller/tenant context. It may return a direct agent message or a
-task. A blocking send must return a terminal/interrupted task; nonblocking mode
-may acknowledge an in-progress task. Hosts own the actual background execution
-and subsequent calls to the store. The library does not create a durable job
-from a task record. Cancellation calls the optional host `handle_cancel/2`
-first, and records cancellation only after its acknowledgement; without that
-callback the task is not cancelable. Callback workers have deadlines even if
-their request caller disappears. Stopping a callback cannot undo external side
-effects or substitute for cancellation of host-owned work.
+Handlers return a direct message, a task, a typed error, or
+`{:async, fn context -> result end}`. A per-task lease rejects concurrent/stale
+message execution. Managed jobs are supervised and bounded; blocking sends wait
+for terminal/interrupted state, while `returnImmediately` acknowledges submitted
+work. Owned cancellation kills that worker. Host-owned work instead requires
+`handle_cancel/2` acknowledgement before cancellation is stored. Stopping a
+worker cannot undo external side effects.
 
-This first slice deliberately keeps the stateful task store separate from the
-agent callback and the listener. A2A streaming, subscription coordination,
-durability and further validation will build on these explicit boundaries.
+`Server.emit/2` accepts an initial Task or subsequent status/artifact updates
+using the context's trusted task and context identities. Artifact appends are
+assembled in storage. Persistence commits before subscribers see updates.
+Subscriptions atomically capture a snapshot and then consume live updates.
+Queues default to 64 events, with 1,000 subscriptions globally; slow consumers
+are disconnected. Reader exits release subscriptions without canceling work.
+There is no replay or exactly-once stream delivery guarantee.
+
+The store defaults to 1,000 tasks, 64 KiB per task and a one-hour TTL. It rejects
+context replacement and terminal-state regression. Listing orders newest status
+first with nanosecond precision, task ID tie-break and missing timestamps last.
+Authenticated cursor tokens bind filters and caller identity. Pagination is a
+live view, not a snapshot.
+
+Persistence adapters implement `TaskStore.Persistence`. The supplied file
+adapter writes private, synchronously flushed atomic snapshots and permits one
+live owner per path. It retains tasks, cursor keys, webhook configs and up to
+1,000 pending outbox jobs. Restart fails abandoned managed work instead of
+replaying side effects. It does not provide distributed consensus, automatic
+business retries or multi-writer storage. Hosts needing those properties supply
+an adapter and an execution policy appropriate to their deployment.
+
+Webhook configuration is task-owner scoped and limited to ten configs per task.
+Updates enter the outbox in the same commit as task state. Delivery is serialized
+per store with bounded global concurrency; each job has at most three attempts.
+Receivers must tolerate duplicates across crashes. A restarted dispatcher rediscovers live stores and resumes pending outboxes.
+Delivery failure emits
+`[:arbor_a2a, :push, :delivery]` telemetry. The default policy permits public
+HTTPS destinations, re-resolves on each attempt and pins the checked address
+while preserving TLS hostname verification. Redirects are rejected. Explicit
+private-network policies belong to trusted host configuration and are not
+persisted as executable functions.
+
+Public discovery is separate from authenticated operations. Extended cards
+require an authenticated principal. Required extensions use exact URI/version
+negotiation; active URIs enter handler context. Hosts implement the semantics of
+the extensions they advertise. Optional card signatures use JOSE and JCS with
+host-supplied keys and allowed asymmetric algorithms; card-supplied key URLs are
+never fetched. gRPC and signing dependencies are optional for package consumers.

@@ -1,0 +1,1875 @@
+{
+  "spec": "v1.0.1",
+  "source_sha256": "627ccfe6ffb1be2c56811c3dcc18780deb419f41cdc98248095c939b2d9dc9cb",
+  "description": "Normative prose inventory; references are scope pointers, not per-clause pass claims.",
+  "blocks": [
+    {
+      "id": "0b8833f595c2be2c",
+      "line": 107,
+      "section": "1.4 Normative Content",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "In addition to the protocol requirements defined in this document, the file `spec/a2a.proto` is the single authoritative normative definition of all protocol data objects and request/response messages. A generated JSON artifact (`spec/a2a.json`, produced at build time and not committed) MAY be published for convenience to tooling and the website, but it is a non-normative build artifact. SDK language bindings, schemas, and any other derived forms **MUST** be regenerated from the proto (directly or via code generation) rather than edited manually.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b8f3461a1d7b8b1c",
+      "line": 111,
+      "section": "1.4 Normative Content",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Introduction: When a proto message or field is renamed, the new name is added while existing published names remain available, but marked deprecated, until the next major release.\n- Documentation: Migration guidance MUST be provided via an ancillary document when introducing major breaking changes.\n- Anchors: Legacy documentation anchors MUST be preserved (as hidden HTML anchors) to avoid breaking inbound links.\n- SDK/Schema Aliases: SDKs and JSON Schemas SHOULD provide deprecated alias types/definitions to maintain backward compatibility.\n- Removal: A deprecated name SHOULD NOT be removed earlier than the next major version after introduction of its replacement.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "71ef2849a877ca6f",
+      "line": 129,
+      "section": "2.1. Requirements Language",
+      "levels": [
+        "MAY",
+        "MUST",
+        "RECOMMENDED",
+        "REQUIRED",
+        "SHOULD"
+      ],
+      "text": "The keywords \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\", \"MAY\", and \"OPTIONAL\" in this document are to be interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "5f834275e1bd7e95",
+      "line": 180,
+      "section": "3.1.1. Send Message",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "The agent MAY create a new `Task` to process the provided message asynchronously or MAY return a direct `Message` response for simple interactions. The operation MUST return immediately with either task information or response message. Task processing MAY continue asynchronously after the response when a [`Task`](#411-task) is returned.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c38d51966f03e542",
+      "line": 192,
+      "section": "3.1.2. Send Streaming Message",
+      "levels": [
+        "MAY"
+      ],
+      "text": "- [`Stream Response`](#323-stream-response) object containing:\n    - Initial response: [`Task`](#411-task) object OR [`Message`](#414-message) object\n    - Subsequent events following a `Task` MAY include stream of [`TaskStatusUpdateEvent`](#421-taskstatusupdateevent) and [`TaskArtifactUpdateEvent`](#422-taskartifactupdateevent) objects\n- Final completion indicator",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b4a460d4016eca1f",
+      "line": 206,
+      "section": "3.1.2. Send Streaming Message",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST establish a streaming connection for real-time updates. The stream MUST follow one of these patterns:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "036d1bd949914697",
+      "line": 208,
+      "section": "3.1.2. Send Streaming Message",
+      "levels": [
+        "MUST"
+      ],
+      "text": "1. **Message-only stream:** If the agent returns a [`Message`](#414-message), the stream MUST contain exactly one `Message` object and then close immediately. No task tracking or updates are provided.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3aa0071c70797547",
+      "line": 210,
+      "section": "3.1.2. Send Streaming Message",
+      "levels": [
+        "MUST"
+      ],
+      "text": "2. **Task lifecycle stream:** If the agent returns a [`Task`](#411-task), the stream MUST begin with the Task object, followed by zero or more [`TaskStatusUpdateEvent`](#421-taskstatusupdateevent) or [`TaskArtifactUpdateEvent`](#422-taskartifactupdateevent) objects. The stream MUST close when the task reaches a terminal state (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, `TASK_STATE_CANCELED`, `TASK_STATE_REJECTED`).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "fab9f98797a73628",
+      "line": 212,
+      "section": "3.1.2. Send Streaming Message",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "The agent MAY return a `Task` for complex processing with status/artifact updates or MAY return a `Message` for direct streaming responses without task overhead. The implementation MUST provide immediate feedback on progress and intermediate results.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "25bc002c5aeeb977",
+      "line": 240,
+      "section": "3.1.4. List Tasks",
+      "levels": [
+        "MUST"
+      ],
+      "text": "When `includeArtifacts` is false (the default), the artifacts field MUST be omitted entirely from each Task object in the response. The field should not be present as an empty array or null value. When `includeArtifacts` is true, the artifacts field should be included with its actual content (which may be an empty array if the task has no artifacts).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f5006849404d8a27",
+      "line": 246,
+      "section": "3.1.4. List Tasks",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Note on `nextPageToken`: The `nextPageToken` field MUST always be present in the response. When there are no more results to retrieve (i.e., this is the final page), the field MUST be set to an empty string (\"\"). Clients should check for an empty string to determine if more pages are available.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "2e242144fc6d48a3",
+      "line": 254,
+      "section": "3.1.4. List Tasks",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST return only tasks visible to the authenticated client and MUST use cursor-based pagination for performance and consistency. Tasks MUST be sorted by last update time in descending order. Implementations MUST implement appropriate authorization scoping to ensure clients can only access authorized tasks. See [Section 13.1 Data Access and Authorization Scoping](#131-data-access-and-authorization-scoping) for detailed security requirements.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6b6e521a47862c6c",
+      "line": 262,
+      "section": "3.1.4. List Tasks",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Implementations MUST return tasks sorted by their status timestamp time in descending order (most recently updated tasks first). This ensures consistent pagination and allows clients to efficiently monitor recent task activity.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c733d40b12e34095",
+      "line": 309,
+      "section": "3.1.6. Subscribe to Task",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation enables real-time monitoring of task progress and can be used with any task that is not in a terminal state. The stream MUST terminate when the task reaches a terminal state (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, `TASK_STATE_CANCELED`, `TASK_STATE_REJECTED`).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6ce5be4b1f16886a",
+      "line": 311,
+      "section": "3.1.6. Subscribe to Task",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST return a `Task` object as the first event in the stream, representing the current state of the task at the time of subscription. This prevents a potential loss of information between a call to `GetTask` and calling `SubscribeToTask`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f8f5675e4376ca8f",
+      "line": 335,
+      "section": "3.1.7. Create Push Notification Config",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST establish a webhook endpoint for task update notifications. When task updates occur, the agent will send HTTP POST requests to the configured webhook URL with [`StreamResponse`](#323-stream-response) payloads (see [Push Notification Payload](#433-push-notification-payload) for details). This operation is only available if the agent supports push notifications capability. The configuration MUST persist until task completion or explicit deletion.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c866790418e78979",
+      "line": 360,
+      "section": "3.1.8. Get Push Notification Config",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST return configuration details including webhook URL and notification settings. The operation MUST fail if the configuration does not exist or the client lacks access.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "bbc757cca5e58d6e",
+      "line": 381,
+      "section": "3.1.9. List Push Notification Configs",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "The operation MUST return all active push notification configurations for the specified task and MAY support pagination for tasks with many configurations.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "a093f947806b9446",
+      "line": 402,
+      "section": "3.1.10. Delete Push Notification Config",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The operation MUST permanently remove the specified push notification configuration. No further notifications will be sent to the configured webhook after deletion. This operation MUST be idempotent - multiple deletions of the same config have the same effect.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b6158932d7dd0559",
+      "line": 423,
+      "section": "3.1.11. Get Extended Agent Card",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Authentication**: The client MUST authenticate the request using one of the schemes declared in the public `AgentCard.securitySchemes` and `AgentCard.security` fields.\n- **Extended Information**: The operation MAY return different details based on client authentication level, including additional skills, capabilities, or configuration not available in the public Agent Card.\n- **Card Replacement**: Clients retrieving this extended card SHOULD replace their cached public Agent Card with the content received from this endpoint for the duration of their authenticated session or until the card's version changes.\n- **Availability**: This operation is only available if the public Agent Card declares `capabilities.extendedAgentCard: true`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3faba60a1fcf23a0",
+      "line": 446,
+      "section": "3.2.2. SendMessageConfiguration",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- **Blocking (`return_immediately: false` or unset)**: The operation MUST wait until the task reaches a terminal state (`TASK_STATE_COMPLETED`, `TASK_STATE_FAILED`, `TASK_STATE_CANCELED`, `TASK_STATE_REJECTED`) or an interrupted state (`TASK_STATE_INPUT_REQUIRED`, `TASK_STATE_AUTH_REQUIRED`) before returning. The response MUST include the latest task state with all artifacts and status information. This is the default behavior.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "838df8611cb7555e",
+      "line": 448,
+      "section": "3.2.2. SendMessageConfiguration",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- **Non-Blocking (`return_immediately: true`)**: The operation MUST return immediately after creating the task, even if processing is still in progress. The returned task will have an in-progress state (e.g., `TASK_STATE_WORKING`, `TASK_STATE_INPUT_REQUIRED`). It is the caller's responsibility to poll for updates using [Get Task](#313-get-task), subscribe via [Subscribe to Task](#316-subscribe-to-task), or receive updates via push notifications.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ab6729cc995fc20a",
+      "line": 469,
+      "section": "3.2.4. History Length Semantics",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- **Unset/undefined**: No limit imposed; server returns its default amount of history (implementation-defined, may be all history)\n- **0**: No history should be returned; the `history` field SHOULD be omitted\n- **> 0**: Return at most this many recent messages from the task's history",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "5cdd3d1483b0104e",
+      "line": 479,
+      "section": "3.2.6 Service Parameters",
+      "levels": [
+        "MUST"
+      ],
+      "text": "A key-value map for passing horizontally applicable context or parameters with case-insensitive string keys and case-sensitive string values. The transmission mechanism for these service parameter key-value pairs is defined by the specific protocol binding (e.g., HTTP headers for HTTP-based bindings, gRPC metadata for gRPC bindings). Custom protocol bindings **MUST** specify how service parameters are transmitted in their binding specification.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "fb3a78d4c2fa74af",
+      "line": 488,
+      "section": "3.2.6 Service Parameters",
+      "levels": [
+        "MAY"
+      ],
+      "text": "As service parameter names MAY need to co-exist with other parameters defined by the underlying transport protocol or infrastructure, all service parameters defined by this specification will be prefixed with `a2a-`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "981c2f00dc60601e",
+      "line": 494,
+      "section": "3.3.1. Idempotency",
+      "levels": [
+        "MAY"
+      ],
+      "text": "- **Get operations** (Get Task, List Tasks, Get Extended Agent Card) are naturally idempotent\n- **Send Message** operations MAY be idempotent. Agents may utilize the messageId to detect duplicate messages.\n- **Cancel Task** operations are idempotent - multiple cancellation requests have the same effect. A duplicate cancellation request MAY return `TaskNotFoundError` if the task has already been canceled and purged.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "8a67450a43b0588f",
+      "line": 500,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "All operations may return errors in the following categories. Servers **MUST** return appropriate errors and **SHOULD** provide actionable information to help clients resolve issues.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "8933ffac43b33fba",
+      "line": 504,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Authentication Errors**: Invalid or missing credentials\n    - Servers **MUST** reject requests with invalid or missing authentication credentials\n    - Servers **SHOULD** include authentication challenge information in the error response\n    - Servers **SHOULD** specify which authentication scheme is required\n    - Example error codes: HTTP `401 Unauthorized`, gRPC `UNAUTHENTICATED`, JSON-RPC custom error\n    - Example scenarios: Missing bearer token, expired API key, invalid OAuth token",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "4b1a99db18336ceb",
+      "line": 511,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Authorization Errors**: Insufficient permissions for requested operation\n    - Servers **MUST** return an authorization error when the authenticated client lacks required permissions\n    - Servers **SHOULD** indicate what permission or scope is missing (without leaking sensitive information about resources the client cannot access)\n    - Servers **MUST NOT** reveal the existence of resources the client is not authorized to access\n    - Example error codes: HTTP `403 Forbidden`, gRPC `PERMISSION_DENIED`, JSON-RPC custom error\n    - Example scenarios: Attempting to access a task created by another user, insufficient OAuth scopes",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6fd19d3f3a5306a4",
+      "line": 518,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Validation Errors**: Invalid input parameters or message format\n    - Servers **MUST** validate all input parameters before processing\n    - Servers **SHOULD** specify which parameter(s) failed validation and why\n    - Servers **SHOULD** provide guidance on valid parameter values or formats\n    - Example error codes: HTTP `400 Bad Request`, gRPC `INVALID_ARGUMENT`, JSON-RPC `-32602 Invalid params`\n    - Example scenarios: Invalid task ID format, missing required message parts, unsupported content type",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1972801f79dad928",
+      "line": 525,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Resource Errors**: Requested task not found or not accessible\n    - Servers **MUST** return a not found error when a requested resource does not exist or is not accessible to the authenticated client\n    - Servers **SHOULD NOT** distinguish between \"does not exist\" and \"not authorized\" to prevent information leakage\n    - Example error codes: HTTP `404 Not Found`, gRPC `NOT_FOUND`, JSON-RPC custom error (see A2A-specific errors)\n    - Example scenarios: Task ID does not exist, task has been deleted, configuration not found",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f7ccc5c71caaf200",
+      "line": 531,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- **System Errors**: Internal agent failures or temporary unavailability\n    - Servers **SHOULD** return appropriate error codes for temporary failures vs. permanent errors\n    - Servers **MAY** include retry guidance (e.g., Retry-After header in HTTP)\n    - Servers **SHOULD** log system errors for diagnostic purposes\n    - Example error codes: HTTP `500 Internal Server Error` or `503 Service Unavailable`, gRPC `INTERNAL` or `UNAVAILABLE`, JSON-RPC `-32603 Internal error`\n    - Example scenarios: Database connection failure, downstream service timeout, rate limit exceeded",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f9d3ef763b6372a2",
+      "line": 540,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All error responses in the A2A protocol, regardless of binding, **MUST** convey the following information:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ced2429ef862e38f",
+      "line": 542,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "1. **Error Code**: A machine-readable identifier for the error type (e.g., string code, numeric code, or protocol-specific status)\n2. **Error Message**: A human-readable description of the error\n3. **Error Details** (optional): An array of objects providing additional structured information about the error. Each object in the array **MUST** include a `@type` key that identifies the object's type (using [ProtoJSON `Any` representation](https://protobuf.dev/programming-guides/json)). Well-known types from the [`google.rpc` error model](https://cloud.google.com/apis/design/errors#error_model) (e.g., `ErrorInfo`, `BadRequest`) **SHOULD** be used where applicable. Error details may be used for:\n    - Affected fields or parameters\n    - Contextual information (e.g., task ID, timestamp)\n    - Suggestions for resolution",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "fe878eff54cb1293",
+      "line": 549,
+      "section": "3.3.2. Error Handling",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Protocol bindings **MUST** map these elements to their native error representations while preserving semantic meaning. See binding-specific sections for concrete error format examples: [JSON-RPC Error Handling](#95-error-handling), [gRPC Error Handling](#106-error-handling), and [HTTP/REST Error Handling](#116-error-handling).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ff5337a22aec2972",
+      "line": 567,
+      "section": "3.3.3. Asynchronous Processing",
+      "levels": [
+        "MAY"
+      ],
+      "text": "A2A operations are designed for asynchronous task execution. Operations return immediately with either [`Task`](#411-task) objects or [`Message`](#414-message) objects, and when a Task is returned, processing continues in the background. Clients retrieve task updates through polling, streaming, or push notifications (see [Section 3.5](#35-task-update-delivery-mechanisms)). Agents MAY accept additional messages for tasks in non-terminal states to enable multi-turn interactions (see [Section 3.4](#34-multi-turn-interactions)).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "cfa553461d0cf832",
+      "line": 571,
+      "section": "3.3.4. Capability Validation",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Agents declare optional capabilities in their [`AgentCard`](#441-agentcard). When clients attempt to use operations or features that require capabilities not declared as supported in the Agent Card, the agent **MUST** return an appropriate error response:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "689a3086aab7b899",
+      "line": 573,
+      "section": "3.3.4. Capability Validation",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- **Push Notifications**: If `AgentCard.capabilities.pushNotifications` is `false` or not present, operations related to push notification configuration (Create, Get, List, Delete) **MUST** return [`PushNotificationNotSupportedError`](#332-error-handling).\n- **Streaming**: If `AgentCard.capabilities.streaming` is `false` or not present, attempts to use `SendStreamingMessage` or `SubscribeToTask` operations **MUST** return [`UnsupportedOperationError`](#332-error-handling).\n- **Extended Agent Card**: If `AgentCard.capabilities.extendedAgentCard` is `false` or not present, attempts to call the Get Extended Agent Card operation **MUST** return [`UnsupportedOperationError`](#332-error-handling). If the agent declares support but has not configured an extended card, it **MUST** return [`ExtendedAgentCardNotConfiguredError`](#332-error-handling).\n- **Extensions**: When a server requests use of an extension marked as `required: true` in the Agent Card but the client does not declare support for it, the agent **MUST** return [`ExtensionSupportRequiredError`](#332-error-handling).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ab58b5fce111c1de",
+      "line": 578,
+      "section": "3.3.4. Capability Validation",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Clients **SHOULD** validate capability support by examining the Agent Card before attempting operations that require optional capabilities.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f283ed5db9e1be40",
+      "line": 590,
+      "section": "3.4.1. Context Identifier Semantics",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents **MAY** generate a new `contextId` when processing a [`Message`](#414-message) that does not include a `contextId` field\n- If an agent generates a new `contextId`, it **MUST** be included in the response (either [`Task`](#411-task) or [`Message`](#414-message))\n- Agents **MAY** accept and preserve client-provided `contextId` values\n- If an agent cannot accept a client-provided `contextId`, it **MUST** reject the request with an error and **MUST NOT** generate a new `contextId` for the response\n- Clients **SHOULD NOT** provide a client-generated `contextId` to a server unless they understand how the server will process that `contextId`\n- Server-generated `contextId` values **SHOULD** be treated as opaque identifiers by clients",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "837410f5b56f0350",
+      "line": 599,
+      "section": "3.4.1. Context Identifier Semantics",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- A `contextId` logically groups multiple [`Task`](#411-task) objects and [`Message`](#414-message) objects that are part of the same conversational context\n- All tasks and messages with the same `contextId` **SHOULD** be treated as part of the same conversational session\n- Agents **MAY** use the `contextId` to maintain internal state, conversational history, or LLM context across multiple interactions\n- Agents **MAY** implement context expiration or cleanup policies and **SHOULD** document any such policies",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "8418f472bb5c2d50",
+      "line": 610,
+      "section": "3.4.2. Task Identifier Semantics",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- Task IDs are **server-generated** when a new task is created in response to a [`Message`](#414-message)\n- Agents **MUST** generate a unique `taskId` for each new task they create\n- The generated `taskId` **MUST** be included in the [`Task`](#411-task) object returned to the client\n- When a client includes a `taskId` in a [`Message`](#414-message), it **MUST** reference an existing task\n- Agents **MUST** return a [`TaskNotFoundError`](#332-error-handling) if the provided `taskId` does not correspond to an existing task\n- Client-provided `taskId` values for creating new tasks is **NOT** supported",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c82184bcd45b93d6",
+      "line": 623,
+      "section": "3.4.3. Multi-Turn Conversation Patterns",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "- [`Task`](#411-task) objects maintain conversation context through the `contextId` field\n- Clients **MAY** include the `contextId` in subsequent messages to indicate continuation of a previous interaction\n- Clients **MAY** use `taskId` (with or without `contextId`) to continue or refine a specific task\n- Clients **MAY** use `contextId` without `taskId` to start a new task within an existing conversation context\n- Agents **MUST** infer `contextId` from the task if only `taskId` is provided\n- Agents **MUST** reject messages containing mismatching `contextId` and `taskId` (i.e., the provided `contextId` is different from that of the referenced [`Task`](#411-task)).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "aa9129a14f742a69",
+      "line": 637,
+      "section": "3.4.3. Multi-Turn Conversation Patterns",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- Clients can send additional messages with `taskId` references to continue or refine existing tasks\n- Clients **SHOULD** use the `referenceTaskIds` field in [`Message`](#414-message) to explicitly reference related tasks\n- Agents **SHOULD** use referenced tasks to understand the context and intent of follow-up requests",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "de5d3a41dbc6699c",
+      "line": 643,
+      "section": "3.4.3. Multi-Turn Conversation Patterns",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- New tasks created within the same `contextId` can inherit context from previous interactions\n- Agents **SHOULD** leverage the shared `contextId` to provide contextually relevant responses",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "fbe5c58c1ca43120",
+      "line": 683,
+      "section": "3.5.2. Streaming Event Delivery",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All implementations MUST deliver events in the order they were generated. Events MUST NOT be reordered during transmission, regardless of protocol binding.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "340fde40035737b8",
+      "line": 687,
+      "section": "3.5.2. Streaming Event Delivery",
+      "levels": [
+        "MAY"
+      ],
+      "text": "An agent MAY serve multiple concurrent streams to one or more clients for the same task. This allows multiple clients (or the same client with multiple connections) to independently subscribe to and receive updates about a task's progress.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d1879778b4883ce5",
+      "line": 691,
+      "section": "3.5.2. Streaming Event Delivery",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- Events MUST be broadcast to all active streams for that task\n- Each stream MUST receive the same events in the same order\n- Closing one stream MUST NOT affect other active streams for the same task\n- The task lifecycle is independent of any individual stream's lifecycle",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "781eb35d775fe42f",
+      "line": 708,
+      "section": "3.6 Versioning",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "The specific version of the A2A protocol in use is identified using the `Major.Minor` elements (e.g. `1.0`) of the corresponding A2A specification version. Patch version numbers used by the specification, do not affect protocol compatibility. Patch version numbers SHOULD NOT be used in requests, responses and Agent Cards, and MUST not be considered when clients and servers negotiate protocol versions.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e515c2458f2a1424",
+      "line": 712,
+      "section": "3.6.1 Client Responsibilities",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Clients MUST send the `A2A-Version` header with each request to maintain compatibility after an agent upgrades to a new version of the protocol (except for 0.3 Clients - 0.3 will be assumed for empty header). Sending the `A2A-Version` header also provides visibility to agents about version usage in the ecosystem, which can help inform the risks of inplace version upgrades.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d5e36061b192a0c8",
+      "line": 724,
+      "section": "3.6.1 Client Responsibilities",
+      "levels": [
+        "MAY"
+      ],
+      "text": "Clients MAY provide the `A2A-Version` as a request parameter instead of a header.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3fa5b4ee6250948e",
+      "line": 737,
+      "section": "3.6.2 Server Responsibilities",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Agents MUST process requests using the semantics of the requested `A2A-Version` (matching `Major.Minor`). If the version is not supported by the interface, agents MUST return a [`VersionNotSupportedError`](#332-error-handling).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f6f6ee3fa066f1d6",
+      "line": 739,
+      "section": "3.6.2 Server Responsibilities",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Agents MUST interpret empty value as 0.3 version.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e65241b7835d4899",
+      "line": 745,
+      "section": "3.6.3 Tooling support",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Tooling libraries and SDKs that implement the A2A protocol MUST provide mechanisms to help clients manage protocol versioning, such as negotiation of the transport and protocol version used. Client Agents that require the latest features of the protocol should be configured to request specific versions and avoid automatic fallback to older versions, to prevent silently losing functionality.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "844af125b1a89f4f",
+      "line": 758,
+      "section": "3.7 Messages and Artifacts",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Messages SHOULD NOT be used to deliver task outputs. Results SHOULD BE returned using Artifacts associated with a Task. This separation allows for a clear distinction between communication (Messages) and data output (Artifacts).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e2e7e7fd09e14781",
+      "line": 762,
+      "section": "3.7 Messages and Artifacts",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "Clients using streaming to retrieve task updates MAY not receive all status update messages if the client is disconnected and then reconnects. Messages MUST NOT be considered a reliable delivery mechanism for critical information.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "4d352bfd3f3e4e64",
+      "line": 764,
+      "section": "3.7 Messages and Artifacts",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "Agents MAY choose to persist all Messages that contain important information in the Task history to ensure clients can retrieve it later. However, clients MUST NOT rely on this behavior unless negotiated out-of-band.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "845ce408f4c15491",
+      "line": 768,
+      "section": "4. Protocol Data Model",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The A2A protocol defines a canonical data model using Protocol Buffers. All protocol bindings **MUST** provide functionally equivalent representations of these data structures.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "59476c9ae3b985f0",
+      "line": 873,
+      "section": "4.3.3. Push Notification Payload",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The agent MUST include authentication credentials in the request headers as specified in the [`PushNotificationConfig.authentication`](#432-authenticationinfo) field. The format follows standard HTTP authentication patterns (Bearer tokens, Basic auth, etc.).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "620d2c45749d0ef1",
+      "line": 877,
+      "section": "4.3.3. Push Notification Payload",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Clients MUST respond with HTTP 2xx status codes to acknowledge successful receipt\n- Clients SHOULD process notifications idempotently, as duplicate deliveries may occur\n- Clients MUST validate the task ID matches an expected task\n- Clients SHOULD implement appropriate security measures to verify the notification source",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "37e7012f767e86c4",
+      "line": 884,
+      "section": "4.3.3. Push Notification Payload",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents MUST attempt delivery at least once for each configured webhook\n- Agents MAY implement retry logic with exponential backoff for failed deliveries\n- Agents SHOULD include a reasonable timeout for webhook requests (recommended: 10-30 seconds)\n- Agents MAY stop attempting delivery after a configured number of consecutive failures",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "bb11c4edafae8ce2",
+      "line": 1139,
+      "section": "4.6.3. Extension Versioning and Compatibility",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "Extensions **SHOULD** include version information in their URI identifier. This allows clients and agents to negotiate compatible versions of extensions during interactions. A new URI **MUST** be created for breaking changes to an extension.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "51c4ae1939120ca5",
+      "line": 1141,
+      "section": "4.6.3. Extension Versioning and Compatibility",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "If a client requests a versions of an extension that the agent does not support, the agent **SHOULD** ignore the extension for that interaction and proceed without it, unless the extension is marked as `required` in the AgentCard, in which case the agent **MUST** return an error indicating unsupported extension. It **MUST NOT** fall back to a previous version of the extension automatically.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b25597d8f64fe1f9",
+      "line": 1147,
+      "section": "5.1. Functional Equivalence Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "When an agent supports multiple protocols, all supported protocols **MUST**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e83cfbfec5437e87",
+      "line": 1156,
+      "section": "5.2. Protocol Selection and Negotiation",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **Agent Declaration**: Agents **MUST** declare all supported protocols in their AgentCard\n- **Client Choice**: Clients **MAY** choose any protocol declared by the agent\n- **Fallback Behavior**: Clients **SHOULD** implement fallback logic for alternative protocols",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d04bc58fb65a42f9",
+      "line": 1178,
+      "section": "5.4. Error Code Mappings",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All A2A-specific errors defined in [Section 3.3.2](#332-error-handling) **MUST** be mapped to binding-specific error representations. The following table provides the canonical mappings for each standard protocol binding:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "baec5cac7aaeb120",
+      "line": 1194,
+      "section": "5.4. Error Code Mappings",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "Custom protocol bindings **MUST** define equivalent error code mappings that preserve the semantic meaning of each A2A error type. The binding specification **SHOULD** provide a similar mapping table showing how each A2A error type is represented in the custom binding's native error format.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "854806e609b0cff7",
+      "line": 1204,
+      "section": "5.5. JSON Field Naming Convention",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All JSON serializations of the A2A protocol data model **MUST** use **camelCase** naming for field names, not the snake_case convention used in Protocol Buffer definitions.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3c09e477a971f2e0",
+      "line": 1215,
+      "section": "5.5. JSON Field Naming Convention",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- Enum values **MUST** be represented according to the [ProtoJSON specification](https://protobuf.dev/programming-guides/json/), which serializes enums as their string names **as defined in the Protocol Buffer definition** (typically SCREAMING_SNAKE_CASE).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "2c528144ad137081",
+      "line": 1230,
+      "section": "5.6.1. Timestamps",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The A2A protocol uses [`google.protobuf.Timestamp`](https://protobuf.dev/reference/protobuf/google.protobuf/#timestamp) for all timestamp fields in the Protocol Buffer definitions. When serialized to JSON (in JSON-RPC, HTTP/REST, or other JSON-based bindings), these timestamps **MUST** be represented as ISO 8601 formatted strings in UTC timezone.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "757d1f5671bbd612",
+      "line": 1234,
+      "section": "5.6.1. Timestamps",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- **Format:** ISO 8601 combined date and time representation\n- **Timezone:** UTC (denoted by 'Z' suffix)\n- **Precision:** Millisecond precision **SHOULD** be used where available\n- **Pattern:** `YYYY-MM-DDTHH:mm:ss.sssZ`",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f559f71db26f834c",
+      "line": 1251,
+      "section": "5.6.1. Timestamps",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "- Protocol Buffer's `google.protobuf.Timestamp` represents time as seconds since Unix epoch (January 1, 1970, 00:00:00 UTC) plus nanoseconds\n- JSON serialization automatically converts this to ISO 8601 format when using standard Protocol Buffer JSON encoding\n- Clients and servers **MUST** parse and generate ISO 8601 timestamps correctly\n- When millisecond precision is not available, the fractional seconds portion **MAY** be omitted or zero-filled\n- Timestamps **MUST NOT** include timezone offsets other than 'Z' (all times are UTC)",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "0f392b611e5857ed",
+      "line": 1259,
+      "section": "5.7. Field Presence and Optionality",
+      "levels": [
+        "REQUIRED"
+      ],
+      "text": "The Protocol Buffer definition in `specification/a2a.proto` uses [`google.api.field_behavior`](https://github.com/googleapis/googleapis/blob/master/google/api/field_behavior.proto) annotations to indicate whether fields are `REQUIRED`. These annotations serve as both documentation and validation hints for implementations.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "807f12e4c4211956",
+      "line": 1263,
+      "section": "5.7. Field Presence and Optionality",
+      "levels": [
+        "MUST",
+        "REQUIRED",
+        "SHOULD"
+      ],
+      "text": "Fields marked with `[(google.api.field_behavior) = REQUIRED]` indicate that the field **MUST** be present and set in valid messages. Implementations **SHOULD** validate these requirements and reject messages with missing required fields. Arrays marked as required **MUST** contain at least one element.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "9deb3be55c4cfbc4",
+      "line": 1275,
+      "section": "5.7. Field Presence and Optionality",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Implementations **SHOULD** ignore unrecognized fields in messages, allowing for forward compatibility as the protocol evolves.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1e904df1b2d58aaa",
+      "line": 1279,
+      "section": "5.8. Custom Binding Identification",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Custom protocol bindings **SHOULD** be identified by a URI. Using a URI as the\nidentifier provides globally unique identification across all implementers.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "41a8f5609afe83f2",
+      "line": 1282,
+      "section": "5.8. Custom Binding Identification",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "The `protocolBinding` field in the Agent Card's `supportedInterfaces` entry\n**SHOULD** be a URI:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1616f9507c7939c7",
+      "line": 1297,
+      "section": "5.8. Custom Binding Identification",
+      "levels": [
+        "MUST"
+      ],
+      "text": "When a breaking change is introduced to a binding, a new URI **MUST** be used\nso that clients can distinguish between incompatible versions:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d859211426ceda9a",
+      "line": 1879,
+      "section": "7.1. Protocol Security",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "Production deployments **MUST** use encrypted communication (HTTPS for HTTP-based bindings, TLS for gRPC). Implementations **SHOULD** use modern TLS configurations (TLS 1.3+ recommended) with strong cipher suites.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "0a7eafbd6f75420c",
+      "line": 1883,
+      "section": "7.2. Server Identity Verification",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "A2A Clients **SHOULD** verify the A2A Server's identity by validating its TLS certificate against trusted certificate authorities (CAs) during the TLS handshake.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "536b28740e16fc3c",
+      "line": 1895,
+      "section": "7.4. Server Authentication Responsibilities",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- **MUST** authenticate every incoming request based on the provided credentials and its declared authentication requirements.\n- **SHOULD** use appropriate binding-specific error codes for authentication challenges or rejections.\n- **SHOULD** provide relevant authentication challenge information with error responses.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "700e7116cab6671f",
+      "line": 1901,
+      "section": "7.5. Server Authorization Responsibilities",
+      "levels": [
+        "MAY"
+      ],
+      "text": "Once authenticated, the A2A Server authorizes requests based on the authenticated identity and its own policies. Authorization logic is implementation-specific and **MAY** consider:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "647d5610d81c24c6",
+      "line": 1925,
+      "section": "7.6.1 In-Task Authorization Agent Responsibilities",
+      "levels": [
+        "MUST"
+      ],
+      "text": "1. MUST use a Task to track the operation it is performing\n2. MUST transition the TaskState to `TASK_STATE_AUTH_REQUIRED`\n3. MUST include a TaskStatus message explaining the required authorization, unless the details of the authorization have been negotiated out-of-band or via an extension",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "44068d32ab71cdf9",
+      "line": 1929,
+      "section": "7.6.1 In-Task Authorization Agent Responsibilities",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Agents MUST arrange to receive credentials via an out-of-band means, unless an in-band mechanism has been negotiated out-of-band or via an extension.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "0cb051f2576e867f",
+      "line": 1931,
+      "section": "7.6.1 In-Task Authorization Agent Responsibilities",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "If the credential is received out-of-band, the agent SHOULD maintain any active response streams with the client after setting the TaskState to `TASK_STATE_AUTH_REQUIRED`. The agent MAY immediately continue Task processing after receiving the credential, without a requirement that clients send a follow-up message.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "dc722a4fe35fdbc2",
+      "line": 1933,
+      "section": "7.6.1 In-Task Authorization Agent Responsibilities",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Agents SHOULD support receiving messages directed to the Task while the Task remains in `TASK_STATE_AUTH_REQUIRED`. This enables clients to negotiate, correct, or reject an authorization request.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "50a85f6f00fb42f3",
+      "line": 1945,
+      "section": "7.6.2 In-Task Authorization Client Responsibilities",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "If the client is itself an A2A agent actively processing a Task, the client may further delegate the authorization request to its client by transitioning its own Task to `TASK_STATE_AUTH_REQUIRED`. The client SHOULD follow all [In-Task Authorization Agent Responsibilities](#761-in-task-authorization-agent-responsibilities). This enables forming a chain of Tasks in `TASK_STATE_AUTH_REQUIRED`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "adbec7eaa5aa1d8c",
+      "line": 1947,
+      "section": "7.6.2 In-Task Authorization Client Responsibilities",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Clients may not be aware of when the agent receives credentials out-of-band and subsequently continues Task processing. If a client does not have an active response stream open with the agent, the client risks missing Task updates. To avoid this, a client SHOULD perform one of the following:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c1264273520ba917",
+      "line": 1955,
+      "section": "7.6.3 In-Task Authorization Security Considerations",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Agents SHOULD receive credentials for in-task authorization requests out of band via a secure channel, such as HTTPS. This ensures that credentials are provided directly to the agent.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "28776357d5838dd2",
+      "line": 1961,
+      "section": "7.6.3 In-Task Authorization Security Considerations",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- Credentials SHOULD be bound to the agent which originated the request, such that only this agent is able to use the credentials. This ensures that credentials propagating through a chain of A2A requests are only usable by the requesting agent.\n- Credentials containing sensitive information SHOULD be only readable by the agent which originated the request, such as by encrypting the credential.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e1bdeea95a9d9c07",
+      "line": 1970,
+      "section": "8.1. Purpose",
+      "levels": [
+        "MUST"
+      ],
+      "text": "A2A Servers **MUST** make an Agent Card available. The Agent Card describes the server's identity, capabilities, skills, and interaction requirements. Clients use this information for discovering suitable agents and configuring interactions.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c8ad3f98f6571d07",
+      "line": 1984,
+      "section": "8.3. Protocol Declaration Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The AgentCard **MUST** properly declare supported protocols:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b43da0d8ea5d8bf8",
+      "line": 1988,
+      "section": "8.3.1. Supported Interfaces Declaration",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- The `supportedInterfaces` field **SHOULD** declare all supported protocol combinations in preference order\n- The first entry in `supportedInterfaces` represents the preferred interface\n- Each interface **MUST** accurately declare its transport protocol and URL\n- URLs **MAY** be reused if multiple transports are available at the same endpoint",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1d3dd6145b12a429",
+      "line": 1995,
+      "section": "8.3.2. Client Protocol Selection",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Clients **MUST** follow these rules:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b44126fe21ffbe12",
+      "line": 2004,
+      "section": "8.4. Agent Card Signing",
+      "levels": [
+        "MAY"
+      ],
+      "text": "Agent Cards **MAY** be digitally signed using JSON Web Signature (JWS) as defined in [RFC 7515](https://tools.ietf.org/html/rfc7515) to ensure authenticity and integrity. Signatures allow clients to verify that an Agent Card has not been tampered with and originates from the claimed provider.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "0d4d086ad1bc6b3f",
+      "line": 2008,
+      "section": "8.4.1. Canonicalization Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Before signing, the Agent Card content **MUST** be canonicalized using the JSON Canonicalization Scheme (JCS) as defined in [RFC 8785](https://tools.ietf.org/html/rfc8785). This ensures consistent signature generation and verification across different JSON implementations.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d73aa38617fff00c",
+      "line": 2012,
+      "section": "8.4.1. Canonicalization Requirements",
+      "levels": [
+        "MUST",
+        "REQUIRED"
+      ],
+      "text": "1. **Field Presence and Default Value Handling**: Before canonicalization, the JSON representation **MUST** respect Protocol Buffer field presence semantics as defined in [Section 5.7](#57-field-presence-and-optionality). This ensures that the canonical form accurately reflects which fields were explicitly provided versus which were omitted, enabling signature verification when Agent Cards are reconstructed:\n    - **Optional fields not explicitly set**: Fields marked with the `optional` keyword that were not explicitly set **MUST** be omitted from the JSON object\n    - **Optional fields explicitly set to defaults**: Fields marked with `optional` that were explicitly set to a value (even if that value matches a default) **MUST** be included in the JSON object\n    - **Required fields**: Fields marked with `REQUIRED` **MUST** always be present, even if the field value matches the default.\n    - **Default values**: Fields with default values **MUST** be omitted unless the field is marked as `REQUIRED` or has the `optional` keyword.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "dcacb4a72cbaa23e",
+      "line": 2018,
+      "section": "8.4.1. Canonicalization Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "2. **RFC 8785 Compliance**: The Agent Card JSON **MUST** be canonicalized according to RFC 8785, which specifies:\n    - Predictable ordering of object properties (lexicographic by key)\n    - Consistent representation of numbers, strings, and other primitive values\n    - Removal of insignificant whitespace",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "512247d7ca89cd07",
+      "line": 2023,
+      "section": "8.4.1. Canonicalization Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "3. **Signature Field Exclusion**: The `signatures` field itself **MUST** be excluded from the content being signed to avoid circular dependencies.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "12fd02b1ff91fb18",
+      "line": 2044,
+      "section": "8.4.1. Canonicalization Requirements",
+      "levels": [
+        "REQUIRED"
+      ],
+      "text": "- `name`: \"Example Agent\" - REQUIRED field → **include**\n- `description`: \"\" - REQUIRED field → **include**\n- `capabilities`: object - REQUIRED field → **include** (after processing children)\n    - `streaming`: false - optional field, present in JSON (explicitly set) → **include**\n    - `pushNotifications`: false - optional field, present in JSON (explicitly set) → **include**\n    - `extensions`: [] - repeated field (not REQUIRED) with empty array → **omit**\n- `skills`: [] - REQUIRED field → **include**",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "0f5c37a693e83057",
+      "line": 2068,
+      "section": "8.4.2. Signature Format",
+      "levels": [
+        "MUST"
+      ],
+      "text": "The protected header **MUST** include:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "10b1059269cb5d23",
+      "line": 2070,
+      "section": "8.4.2. Signature Format",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- `alg`: Algorithm used for signing (e.g., \"ES256\", \"RS256\")\n- `typ`: **SHOULD** be set to \"JOSE\" for JWS\n- `kid`: Key ID for identifying the signing key",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e6f73423ca190c30",
+      "line": 2074,
+      "section": "8.4.2. Signature Format",
+      "levels": [
+        "MAY"
+      ],
+      "text": "The protected header **MAY** include:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "fe28b0d6117ee462",
+      "line": 2119,
+      "section": "8.4.3. Signature Verification",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Clients verifying Agent Card signatures **MUST**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e1d7d1f3d2c5925b",
+      "line": 2130,
+      "section": "8.4.3. Signature Verification",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Clients **SHOULD** verify at least one signature before trusting an Agent Card\n- Public keys **SHOULD** be retrieved over secure channels (HTTPS)\n- Clients **MAY** maintain a trusted key store for known agent providers\n- Expired or revoked keys **MUST NOT** be used for verification\n- Multiple signatures **MAY** be present to support key rotation",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "998cf8d70b0b5180",
+      "line": 2215,
+      "section": "8.6. Caching",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Agent Card content changes infrequently relative to the frequency at which clients may fetch it. Servers and clients **SHOULD** use standard HTTP caching mechanisms to reduce unnecessary network overhead.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "5c4f3368a687247f",
+      "line": 2219,
+      "section": "8.6.1. Server Requirements",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- Agent Card HTTP endpoints **SHOULD** include a `Cache-Control` response header with a `max-age` directive appropriate for the agent's expected update frequency\n- Agent Card HTTP endpoints **SHOULD** include an `ETag` response header derived from the Agent Card's `version` field or a hash of the card content\n- Agent Card HTTP endpoints **MAY** include a `Last-Modified` response header",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "689b7f81bd8a4829",
+      "line": 2225,
+      "section": "8.6.2. Client Requirements",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- Clients **SHOULD** honor HTTP caching semantics as defined in [RFC 9111](https://www.rfc-editor.org/rfc/rfc9111) when fetching Agent Cards\n- When a cached Agent Card has expired, clients **SHOULD** use conditional requests (`If-None-Match` with the stored `ETag`, or `If-Modified-Since`) to avoid re-downloading unchanged cards\n- When the server does not include caching headers, clients **MAY** apply an implementation-specific default cache duration",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ab618d40217c1f6b",
+      "line": 2242,
+      "section": "9.2. Service Parameter Transmission",
+      "levels": [
+        "MUST"
+      ],
+      "text": "A2A service parameters defined in [Section 3.2.6](#326-service-parameters) **MUST** be transmitted using standard HTTP request headers, as JSON-RPC 2.0 operates over HTTP(S).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6629aeeee7da10c6",
+      "line": 2246,
+      "section": "9.2. Service Parameter Transmission",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Service parameter names **MUST** be transmitted as HTTP header fields\n- Service parameter keys are case-insensitive per HTTP specification (RFC 7230)\n- Multiple values for the same service parameter (e.g., `A2A-Extensions`) **SHOULD** be comma-separated in a single header field",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ce31f807f223d953",
+      "line": 2270,
+      "section": "9.3. Base Request Structure",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All JSON-RPC requests **MUST** follow the standard JSON-RPC 2.0 format:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b76461d0863519ed",
+      "line": 2455,
+      "section": "9.5. Error Handling",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "Each object in the `data` array **MUST** include a `@type` key that identifies the object's type. Implementations **SHOULD** use well-known types such as `google.rpc.ErrorInfo` to refine error reporting, or `google.rpc.BadRequest` to attach structured data to validation errors. Additional error context **MAY** be included as further objects in the `data` array.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "88114f0a1ea3bc77",
+      "line": 2518,
+      "section": "10.2. Service Parameter Transmission",
+      "levels": [
+        "MUST"
+      ],
+      "text": "A2A service parameters defined in [Section 3.2.6](#326-service-parameters) **MUST** be transmitted using gRPC metadata (headers).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "dad8a30d5a44afab",
+      "line": 2522,
+      "section": "10.2. Service Parameter Transmission",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Service parameter names **MUST** be transmitted as gRPC metadata keys\n- Metadata keys are case-insensitive and automatically converted to lowercase by gRPC\n- Multiple values for the same service parameter (e.g., `A2A-Extensions`) **SHOULD** be comma-separated in a single metadata entry",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "66831de4bd33fcde",
+      "line": 2543,
+      "section": "10.2. Service Parameter Transmission",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Implementations **MUST** extract A2A service parameters from gRPC metadata for processing\n- Servers **SHOULD** validate required service parameters (e.g., `A2A-Version`) from metadata\n- Service parameter keys in metadata are normalized to lowercase per gRPC conventions",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e2d478ddad0fa356",
+      "line": 2687,
+      "section": "10.6. Error Handling",
+      "levels": [
+        "MUST"
+      ],
+      "text": "For A2A-specific errors, implementations **MUST** include a `google.rpc.ErrorInfo` message in the `status.details` array with:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "5ae6055c86ed515d",
+      "line": 2749,
+      "section": "11.1. Protocol Requirements",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- **Protocol:** HTTP(S) with JSON payloads\n- **Content-Type:** application/a2a+json **SHOULD** be used for requests and responses\n- **Methods:** Standard HTTP verbs (GET, POST, PUT, DELETE)\n- **URL Patterns:** RESTful resource-based URLs\n- **Streaming:** Server-Sent Events for real-time updates",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "4848469ea2a6a818",
+      "line": 2757,
+      "section": "11.2. Service Parameter Transmission",
+      "levels": [
+        "MUST"
+      ],
+      "text": "A2A service parameters defined in [Section 3.2.6](#326-service-parameters) **MUST** be transmitted using standard HTTP request headers.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "35641e403b6f70d2",
+      "line": 2761,
+      "section": "11.2. Service Parameter Transmission",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Service parameter names **MUST** be transmitted as HTTP header fields\n- Service parameter keys are case-insensitive per HTTP specification (RFC 9110)\n- Multiple values for the same service parameter (e.g., `A2A-Extensions`) **SHOULD** be comma-separated in a single header field",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "7b8fe8db8485adf4",
+      "line": 2853,
+      "section": "11.5. Query Parameter Naming for Request Parameters",
+      "levels": [
+        "MUST"
+      ],
+      "text": "HTTP methods that do not support request bodies (GET, DELETE) **MUST** transmit operation request parameters as path parameters or query parameters. This section defines how to map Protocol Buffer field names to query parameter names.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d5647d97a9978881",
+      "line": 2857,
+      "section": "11.5. Query Parameter Naming for Request Parameters",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Query parameter names **MUST** use `camelCase` to match the JSON serialization of Protocol Buffer field names. This ensures consistency with request bodies used in POST operations.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3197df5e9140a445",
+      "line": 2884,
+      "section": "11.5. Query Parameter Naming for Request Parameters",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "- **Strings**: Passed directly as query parameter values\n- **Booleans**: Represented as lowercase strings (`true`, `false`)\n- **Numbers**: Represented as decimal strings\n- **Enums**: Represented using their string values (e.g., `status=TASK_STATE_WORKING`)\n- **Repeated Fields**: Multiple values **MAY** be passed by repeating the parameter name (e.g., `?tag=value1&tag=value2`) or as comma-separated values (e.g., `?tag=value1,value2`)\n- **Nested Objects**: Not supported in query parameters; operations requiring nested objects **MUST** use POST with a request body\n- **Datetimes/Timestamps**: Represented as ISO 8601 strings (e.g., `2025-11-09T10:30:00Z`)",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "72c7961982cde44b",
+      "line": 2894,
+      "section": "11.5. Query Parameter Naming for Request Parameters",
+      "levels": [
+        "MUST"
+      ],
+      "text": "All query parameter values **MUST** be properly URL-encoded per [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986.html).",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "c909789b5bb389d1",
+      "line": 2906,
+      "section": "11.6. Error Handling",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "Each object in the `details` array **MUST** include a `@type` key that identifies the object's type. Implementations **SHOULD** use well-known types such as `google.rpc.BadRequest` to attach structured data to validation errors. Additional error context **MAY** be included as further objects in the `details` array.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "21a0df6aa85f1c25",
+      "line": 2910,
+      "section": "11.6. Error Handling",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Since multiple A2A error types may map to the same HTTP status code (e.g., `TaskNotCancelableError` and `PushNotificationNotSupportedError` both map to `400 Bad Request`), implementations **MUST** include a `google.rpc.ErrorInfo` object in the `details` array for A2A-specific errors with:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "214e16f7e7c1cd15",
+      "line": 2972,
+      "section": "11.7. Streaming",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "**Referenced Objects:** [`StreamResponse`](#323-stream-response)\nStreaming responses are simple, linearly ordered sequences: first a `Task` (or single `Message`), then zero or more status or artifact update events until the task reaches a terminal or interrupted state, at which point the stream closes. Implementations SHOULD avoid re-ordering events and MAY optionally resend a final `Task` snapshot before closing.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "112248f587539ad5",
+      "line": 2977,
+      "section": "12. Custom Binding Guidelines",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "While the A2A protocol provides three standard bindings (JSON-RPC, gRPC, and HTTP+JSON/REST), implementers **MAY** create custom protocol bindings to support additional transport mechanisms or communication patterns. Custom bindings **MUST** comply with all requirements defined in [Section 5 (Protocol Binding Requirements and Interoperability)](#5-protocol-binding-requirements-and-interoperability). This section provides additional guidelines specific to developing custom bindings.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "8dca501fa584e079",
+      "line": 2981,
+      "section": "12.1. Binding Requirements",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Custom protocol bindings **MUST**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b9d030dddeef0342",
+      "line": 2990,
+      "section": "12.2. Data Type Mappings",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Custom bindings **MUST** provide clear mappings for:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "e68d58f44978c13a",
+      "line": 2999,
+      "section": "12.3. Service Parameter Transmission",
+      "levels": [
+        "MUST"
+      ],
+      "text": "As specified in [Section 3.2.6 (Service Parameters)](#326-service-parameters), custom protocol bindings **MUST** document how service parameters are transmitted. The binding specification **MUST** address:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "d1896c7322a90de0",
+      "line": 3013,
+      "section": "12.4. Error Mapping",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Custom bindings **MUST**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "478d4b17029772e3",
+      "line": 3029,
+      "section": "12.5. Streaming Support",
+      "levels": [
+        "MUST"
+      ],
+      "text": "If streaming is not supported, the binding **MUST** clearly document this limitation in the Agent Card.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "8fc92e6533a65679",
+      "line": 3033,
+      "section": "12.6. Authentication and Authorization",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Custom bindings **MUST**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "2a96fb54a8aeb625",
+      "line": 3042,
+      "section": "12.7. Agent Card Declaration",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Custom bindings **MUST** be declared in the Agent Card:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ced76215fde65fa0",
+      "line": 3062,
+      "section": "12.8. Interoperability Testing",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Custom binding implementers **SHOULD**:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3c497a59e83d3c2c",
+      "line": 3075,
+      "section": "13.1. Data Access and Authorization Scoping",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Implementations **MUST** ensure appropriate scope limitation based on the authenticated caller's authorization boundaries. This applies to all operations that access or list tasks and other resources.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6688b84a6242d575",
+      "line": 3079,
+      "section": "13.1. Data Access and Authorization Scoping",
+      "levels": [
+        "MAY",
+        "MUST"
+      ],
+      "text": "- Servers **MUST** implement authorization checks on every [A2A Protocol Operations](#3-a2a-protocol-operations) request\n- Implementations **MUST** scope results to the caller's authorized access boundaries as defined by the agent's authorization model\n- Even when `contextId` or other filter parameters are not specified in requests, implementations **MUST** scope results to the caller's authorized access boundaries\n- Authorization models are agent-defined and **MAY** be based on:\n    - User identity (user-based authorization)\n    - Organizational roles or groups (role-based authorization)\n    - Project or workspace membership (project-based authorization)\n    - Organizational or tenant boundaries (multi-tenant authorization)\n    - Custom authorization logic specific to the agent's domain",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3cda7e84112f2fac",
+      "line": 3091,
+      "section": "13.1. Data Access and Authorization Scoping",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- [`List Tasks`](#314-list-tasks): **MUST** only return tasks visible to the authenticated client according to the agent's authorization model\n- [`Get Task`](#313-get-task): **MUST** verify the authenticated client has access to the requested task according to the agent's authorization model\n- Task-related operations (Cancel, Subscribe, Push Notification Config): **MUST** verify the client has appropriate access rights according to the agent's authorization model",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "b34cc46f9702ed18",
+      "line": 3097,
+      "section": "13.1. Data Access and Authorization Scoping",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Authorization boundaries are defined by each agent's authorization model, not prescribed by the protocol\n- Authorization checks **MUST** occur before any database queries or operations that could leak information about the existence of resources outside the caller's authorization scope\n- Agents **SHOULD** document their authorization model and access control policies",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "7e2e910bd257ffb1",
+      "line": 3109,
+      "section": "13.2. Push Notification Security",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents **MUST** include authentication credentials in webhook requests as specified in [`PushNotificationConfig.authentication`](#432-authenticationinfo)\n- Agents **SHOULD** implement reasonable timeout values for webhook requests (recommended: 10-30 seconds)\n- Agents **SHOULD** implement retry logic with exponential backoff for failed deliveries\n- Agents **MAY** stop attempting delivery after a configured number of consecutive failures\n- Agents **SHOULD** validate webhook URLs to prevent SSRF (Server-Side Request Forgery) attacks:\n    - Reject private IP ranges (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)\n    - Reject localhost and link-local addresses\n    - Implement URL allowlists where appropriate",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "4aef3486e798c596",
+      "line": 3120,
+      "section": "13.2. Push Notification Security",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Clients **MUST** validate webhook authenticity using the provided authentication credentials\n- Clients **SHOULD** verify the task ID in the payload matches an expected task they created\n- Clients **MUST** respond with HTTP 2xx status codes to acknowledge successful receipt\n- Clients **SHOULD** process notifications idempotently, as duplicate deliveries may occur\n- Clients **SHOULD** implement rate limiting to prevent webhook flooding\n- Clients **SHOULD** use HTTPS endpoints for webhook URLs to ensure confidentiality",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "7cdb571e649c95cf",
+      "line": 3129,
+      "section": "13.2. Push Notification Security",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "- Webhook URLs **SHOULD** use HTTPS to protect payload confidentiality in transit\n- Authentication tokens in [`PushNotificationConfig`](#431-pushnotificationconfig) **SHOULD** be treated as secrets and rotated periodically\n- Agents **SHOULD** securely store push notification configurations and credentials\n- Clients **SHOULD** use unique, single-purpose tokens for each push notification configuration",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "77fba18a68374140",
+      "line": 3142,
+      "section": "13.3. Extended Agent Card Access Control",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- The [`Get Extended Agent Card`](#3111-get-extended-agent-card) operation **MUST** require authentication\n- Agents **MUST** authenticate requests using one of the schemes declared in the public `AgentCard.securitySchemes` and `AgentCard.security` fields\n- Agents **MAY** return different extended card content based on the authenticated client's identity or authorization level\n- Agents **SHOULD** implement appropriate caching headers to control client-side caching of extended cards",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "60e209a593f800ff",
+      "line": 3149,
+      "section": "13.3. Extended Agent Card Access Control",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- Extended cards **MAY** include additional skills not present in the public card\n- Extended cards **MAY** expose more detailed capability information (e.g., rate limits, quotas)\n- Extended cards **MAY** include organization-specific or user-specific configuration\n- Agents **SHOULD** document which capabilities are available at different authentication levels",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "ff7b0b55a25dd38f",
+      "line": 3156,
+      "section": "13.3. Extended Agent Card Access Control",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Extended cards **SHOULD NOT** include sensitive information that could be exploited if leaked (e.g., internal service URLs, unmasked credentials)\n- Agents **MUST** validate that clients have appropriate permissions before returning privileged information in extended cards\n- Clients retrieving extended cards **SHOULD** replace their cached public Agent Card with the extended version for the duration of their authenticated session\n- Agents **SHOULD** version extended cards appropriately and honor client cache invalidation",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6fe862e1b5584ab7",
+      "line": 3163,
+      "section": "13.3. Extended Agent Card Access Control",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- Agents declare extended card support via `AgentCard.capabilities.extendedAgentCard`\n- When `capabilities.extendedAgentCard` is `false` or not present, the operation **MUST** return [`UnsupportedOperationError`](#332-error-handling)\n- When support is declared but no extended card is configured, the operation **MUST** return [`ExtendedAgentCardNotConfiguredError`](#332-error-handling)",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "f7c2eef4a0fef9cd",
+      "line": 3173,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Production deployments **MUST** use encrypted communication (HTTPS for HTTP-based bindings, TLS for gRPC)\n- Implementations **SHOULD** use modern TLS configurations (TLS 1.3+ recommended) with strong cipher suites\n- Agents **SHOULD** enforce HSTS (HTTP Strict Transport Security) headers when using HTTP-based bindings\n- Implementations **SHOULD** disable support for deprecated SSL/TLS versions (SSLv3, TLS 1.0, TLS 1.1)",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6642df945308d33f",
+      "line": 3180,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents **MUST** validate all input parameters before processing\n- Agents **SHOULD** implement appropriate limits on message sizes, file sizes, and request complexity\n- Agents **SHOULD** sanitize or validate file content types and reject unexpected media types",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "3505259c8c2e133f",
+      "line": 3186,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- API keys, tokens, and other credentials **MUST** be treated as secrets\n- Credentials **SHOULD** be rotated periodically\n- Credentials **SHOULD** be transmitted only over encrypted connections\n- Agents **SHOULD** implement credential revocation mechanisms\n- Agents **SHOULD** log authentication failures and implement rate limiting to prevent brute-force attacks",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "88eef855ae93c7f9",
+      "line": 3194,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents **SHOULD** log security-relevant events (authentication failures, authorization denials, suspicious requests)\n- Agents **SHOULD** implement monitoring for unusual patterns (rapid task creation, excessive cancellations)\n- Agents **SHOULD** provide audit trails for sensitive operations\n- Logs **MUST NOT** include sensitive information (credentials, personal data) unless required and properly protected",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "abe4d24ab18f1b8e",
+      "line": 3201,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MAY",
+        "SHOULD"
+      ],
+      "text": "- Agents **SHOULD** implement rate limiting on all operations\n- Agents **SHOULD** return appropriate error responses when rate limits are exceeded\n- Agents **MAY** implement different rate limits for different operations or user tiers",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "6d38a95dd87ffdfe",
+      "line": 3207,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Agents **MUST** comply with applicable data protection regulations\n- Agents **SHOULD** provide mechanisms for users to request deletion of their data\n- Agents **SHOULD** implement appropriate data retention policies\n- Agents **SHOULD** minimize logging of sensitive or personal information",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1ada0e4f5d36b447",
+      "line": 3214,
+      "section": "13.4. General Security Best Practices",
+      "levels": [
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- Custom protocol bindings **MUST** address security considerations in their specification\n- Custom bindings **SHOULD** follow the same security principles as standard bindings\n- Custom bindings **MUST** document authentication integration and credential transmission",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "2d36e2aa5c6b76a0",
+      "line": 3238,
+      "section": "14.1.1. application/a2a+json",
+      "levels": [
+        "MUST"
+      ],
+      "text": "**Encoding considerations:** Binary (UTF-8 encoding MUST be used for JSON text)",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "24fe0bc1931daa6b",
+      "line": 3243,
+      "section": "14.1.1. application/a2a+json",
+      "levels": [
+        "MUST"
+      ],
+      "text": "- Content MUST be validated against the A2A protocol schema before processing\n- Implementations MUST sanitize user-provided content to prevent injection attacks\n- File references within A2A messages MUST be validated to prevent server-side request forgery (SSRF)\n- Authentication and authorization MUST be enforced as specified in Section 7 of the A2A specification\n- Sensitive information in task history and artifacts MUST be protected according to applicable data protection regulations",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "1ebffb763df56620",
+      "line": 3296,
+      "section": "14.2.1. A2A-Version Header",
+      "levels": [
+        "MUST"
+      ],
+      "text": "**Related information:**\nThe A2A-Version header field indicates the A2A protocol version that the client is using. The value MUST be in the format `Major.Minor` (e.g., \"0.3\"). If the version is not supported by the agent, the agent returns a `VersionNotSupportedError`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "9f28144129871c13",
+      "line": 3334,
+      "section": "14.3. Well-Known URI Registration",
+      "levels": [
+        "MUST"
+      ],
+      "text": "**Related information:**\nThe `.well-known/agent-card.json` URI provides a standardized location for discovering an A2A agent's capabilities, supported protocols, authentication requirements, and available skills. The resource at this URI MUST return an AgentCard object as defined in Section 4.4.1 of the A2A specification.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "28f30f1ca2df7069",
+      "line": 3341,
+      "section": "14.3. Well-Known URI Registration",
+      "levels": [
+        "MAY",
+        "MUST",
+        "SHOULD"
+      ],
+      "text": "- The Agent Card MAY contain public information about an agent's capabilities and SHOULD NOT include sensitive credentials or internal implementation details\n- Implementations SHOULD support HTTPS to ensure authenticity and integrity of the Agent Card\n- Agent Cards MAY be signed using JSON Web Signatures (JWS) as specified in the AgentCardSignature object (Section 4.4.7)\n- Clients SHOULD verify signatures when present to ensure the Agent Card has not been tampered with\n- Extended Agent Cards retrieved via authenticated endpoints (Section 3.1.11) MAY contain additional information and MUST enforce appropriate access controls",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "978ca416e2e72ce4",
+      "line": 3357,
+      "section": "Appendix A. Migration & Legacy Compatibility",
+      "levels": [
+        "MUST"
+      ],
+      "text": "This appendix catalogs renamed protocol messages and objects, their legacy identifiers, and the planned deprecation/removal schedule. All legacy names and anchors MUST remain resolvable until the stated earliest removal version.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "4d8e648430ddaaf2",
+      "line": 3417,
+      "section": "A.1 Legacy Documentation Anchors",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Each legacy span SHOULD be placed adjacent to the current object's heading (to be inserted during detailed object section edits). If an exact numeric-prefixed anchor existed (e.g., `#414-message`), add an additional span matching that historical form if known.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "868f19cbfb4b194f",
+      "line": 3421,
+      "section": "A.2 Migration Guidance",
+      "levels": [
+        "SHOULD"
+      ],
+      "text": "Client Implementations SHOULD:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "5ac51230a6c3a5b9",
+      "line": 3427,
+      "section": "A.2 Migration Guidance",
+      "levels": [
+        "MAY"
+      ],
+      "text": "Server Implementations MAY:",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    },
+    {
+      "id": "9ea9185b974fe2de",
+      "line": 3596,
+      "section": "A.3 Future Automation",
+      "levels": [
+        "MUST"
+      ],
+      "text": "Once the proto→schema generation pipeline lands, this appendix will be partially auto-generated (legacy mapping table sourced from a maintained manifest). Until then, edits MUST be manual and reviewed in PRs affecting `a2a.proto`.",
+      "evidence_scope": "docs/REQUIREMENTS.md",
+      "individual_qualification": false
+    }
+  ]
+}

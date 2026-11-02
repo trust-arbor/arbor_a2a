@@ -79,11 +79,11 @@ defmodule Arbor.A2A.TransportSafetyTest do
   test "a disappearing caller cannot leave a callback running forever" do
     {server, _store} = server(timeout: 25)
     server = %{server | handler: Arbor.A2A.WatchedAgent}
-    owner = self()
+    Process.register(self(), Arbor.A2A.WatchedAgent.Observer)
 
     caller =
       spawn(fn ->
-        Server.dispatch(server, "SendMessage", Map.put(params("timeout"), "observer", owner))
+        Server.dispatch(server, "SendMessage", params("timeout"))
       end)
 
     assert_receive {:callback_worker, worker}
@@ -97,8 +97,8 @@ defmodule Arbor.A2A.WatchedAgent do
   @moduledoc false
   @behaviour Arbor.A2A.Server.Handler
   @impl true
-  def handle_message(params, _context) do
-    send(params["observer"], {:callback_worker, self()})
+  def handle_message(_params, _context) do
+    send(Arbor.A2A.WatchedAgent.Observer, {:callback_worker, self()})
     Process.sleep(:infinity)
   end
 end

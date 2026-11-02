@@ -146,10 +146,10 @@ defmodule Arbor.A2A.ServerTest do
              Server.dispatch(server, "ListTasks", %{"tenant" => "tenant-a"})
   end
 
-  test "cannot advertise unsupported capabilities", %{server: server} do
+  test "streaming can be advertised", %{server: server} do
     opts = Map.from_struct(server) |> Map.to_list()
 
-    assert {:error, :invalid_server_config} =
+    assert {:ok, _} =
              Server.new(
                Keyword.put(opts, :card, put_in(server.card, ["capabilities", "streaming"], true))
              )

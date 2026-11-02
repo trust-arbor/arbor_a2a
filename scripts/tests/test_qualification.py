@@ -29,7 +29,7 @@ class EvidenceGateTest(unittest.TestCase):
             self.check('<testsuite><testcase name="a"/></testsuite>', {'allowed_skips': {}, 'test_count': 2})
 
     def test_reviewed_skip_is_reported_separately_from_a_pass(self):
-        result = self.check('<testsuite><testcase name="a"/><testcase name="b"><skipped message="reason"/></testcase></testsuite>', {'allowed_skips': {'b': 'reason'}, 'test_count': 2})
+        result = self.check('<testsuite><testcase name="a"/><testcase name="b"><skipped message="reason"/></testcase></testsuite>', {'allowed_skips': {'::b': 'reason'}, 'test_count': 2})
         self.assertEqual(result['passed'], 1)
         self.assertEqual(result['total'], 2)
 
@@ -38,6 +38,15 @@ class EvidenceGateTest(unittest.TestCase):
             self.check('<testsuite><testcase name="a"/><testcase name="a"/></testsuite>', {'allowed_skips': {}, 'test_count': 2})
         with self.assertRaises(RuntimeError):
             self.check('<testsuite><testcase name="other"/></testsuite>', {'allowed_skips': {}, 'test_count': 1, 'case_ids': ['::expected']})
+
+class SkipIdentityGateTest(unittest.TestCase):
+    def test_same_test_name_in_different_classes_cannot_hide_an_extra_skip(self):
+        xml = '<testsuite><testcase classname="one" name="same"><skipped message="reason"/></testcase><testcase classname="two" name="same"><skipped message="reason"/></testcase></testsuite>'
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.xml') as output:
+            output.write(xml)
+            output.flush()
+            with self.assertRaises(RuntimeError):
+                qa.verify_junit(output.name, {'allowed_skips': {'one::same': 'reason'}, 'test_count': 2})
 
 
 if __name__ == '__main__':

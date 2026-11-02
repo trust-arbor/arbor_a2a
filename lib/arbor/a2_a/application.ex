@@ -8,6 +8,9 @@ defmodule Arbor.A2A.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Registry, keys: :duplicate, name: Arbor.A2A.Stores},
+      {Arbor.A2A.Events, []},
+      {Arbor.A2A.Push, []},
       {Task.Supervisor, name: Arbor.A2A.Executor, max_children: 64}
     ]
 

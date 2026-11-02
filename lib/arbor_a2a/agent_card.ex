@@ -1,6 +1,7 @@
 defmodule Arbor.A2A.AgentCard do
   @moduledoc "A2A 1.0 Agent Card construction and JSON-RPC interface selection."
-  alias Arbor.A2A.Message
+  alias Arbor.A2A.{Message, Schema}
+  alias Arbor.A2A.Proto.Lf.A2a.V1, as: Wire
 
   def new(name, url, opts \\ []) do
     %{
@@ -19,26 +20,27 @@ defmodule Arbor.A2A.AgentCard do
 
   def validate(card) when is_map(card) do
     valid =
-      Enum.all?(~w(name description version), &Message.nonempty?(card[&1])) and
+      Schema.valid?(Wire.AgentCard, card) and
+        Enum.all?(~w(name description version), &Message.nonempty?(card[&1])) and
         match?([_ | _], card["supportedInterfaces"]) and
         Enum.all?(card["supportedInterfaces"], &valid_interface?/1) and
         is_map(card["capabilities"]) and is_list(card["skills"]) and
         Enum.all?(card["skills"], &valid_skill?/1) and
-        Enum.all?(~w(defaultInputModes defaultOutputModes), fn k ->
-          match?([_ | _], card[k]) and Enum.all?(card[k], &Message.nonempty?/1)
-        end)
+        valid_modes?(card)
 
     if valid, do: :ok, else: {:error, :invalid_agent_card}
   end
 
   def validate(_), do: {:error, :invalid_agent_card}
 
-  def jsonrpc_interface(card) do
+  def jsonrpc_interface(card), do: interface(card, "JSONRPC")
+
+  def interface(card, binding) do
     with :ok <- validate(card),
          interface when is_map(interface) <-
            Enum.find(
              card["supportedInterfaces"],
-             &(&1["protocolBinding"] == "JSONRPC" and &1["protocolVersion"] == "1.0")
+             &(&1["protocolBinding"] == binding and &1["protocolVersion"] == "1.0")
            ) do
       {:ok, interface}
     else
@@ -46,6 +48,12 @@ defmodule Arbor.A2A.AgentCard do
       error -> error
     end
   end
+
+  defp valid_modes?(card),
+    do:
+      Enum.all?(~w(defaultInputModes defaultOutputModes), fn key ->
+        match?([_ | _], card[key]) and Enum.all?(card[key], &Message.nonempty?/1)
+      end)
 
   defp valid_interface?(%{
          "url" => url,

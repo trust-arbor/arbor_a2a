@@ -41,6 +41,17 @@ defmodule Arbor.A2A.Error do
     %__MODULE__{code: code, message: message, data: data}
   end
 
+  @doc false
+  def from_reason(reason) do
+    key =
+      Enum.find_value(@errors, fn {key, _} ->
+        error = new(key)
+        if error.data && hd(error.data)["reason"] == reason, do: key
+      end)
+
+    new(key || :internal_error)
+  end
+
   def to_map(%__MODULE__{} = error) do
     map = %{"code" => error.code, "message" => error.message}
     if error.data, do: Map.put(map, "data", error.data), else: map

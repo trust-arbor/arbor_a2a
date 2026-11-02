@@ -8,7 +8,7 @@ defmodule Arbor.A2A.HttpPlug do
   """
   @behaviour Plug
   import Plug.Conn
-  alias Arbor.A2A.{Error, Protocol, Server}
+  alias Arbor.A2A.{Error, Extensions, Protocol, Server}
   @impl true
   def init(opts) do
     server = Keyword.fetch!(opts, :server)
@@ -22,9 +22,27 @@ defmodule Arbor.A2A.HttpPlug do
 
   @impl true
   def call(%{method: "GET", request_path: "/.well-known/agent-card.json"} = conn, opts) do
-    conn
-    |> put_resp_header("cache-control", "public, max-age=60")
-    |> json(200, opts[:server].card)
+    server = opts[:server]
+    bytes = Jason.encode!(server.card)
+    etag = "\"" <> Base.encode16(:crypto.hash(:sha256, bytes), case: :lower) <> "\""
+
+    modified =
+      Calendar.strftime(server.card_updated_at || DateTime.utc_now(), "%a, %d %b %Y %H:%M:%S GMT")
+
+    conn =
+      conn
+      |> put_resp_header("cache-control", "public, max-age=60")
+      |> put_resp_header("etag", etag)
+      |> put_resp_header("last-modified", modified)
+
+    matches =
+      get_req_header(conn, "if-none-match")
+      |> Enum.flat_map(&String.split(&1, ","))
+      |> Enum.map(&String.trim/1)
+
+    if etag in matches or "*" in matches,
+      do: send_resp(conn, 304, ""),
+      else: json(conn, 200, server.card)
   end
 
   def call(conn, opts) do
@@ -41,6 +59,8 @@ defmodule Arbor.A2A.HttpPlug do
   end
 
   defp authenticated(conn, opts) do
+    conn = put_resp_header(conn, "cache-control", "no-store")
+
     case authenticate(conn, opts[:authenticate]) do
       {:ok, principal} -> process(conn, opts, principal)
       {:error, :forbidden} -> send_resp(conn, 403, "Forbidden")
@@ -48,9 +68,9 @@ defmodule Arbor.A2A.HttpPlug do
     end
   end
 
-  defp authenticate(_, nil), do: {:ok, :anonymous}
+  def authenticate(_, nil), do: {:ok, :anonymous}
 
-  defp authenticate(conn, fun) when is_function(fun, 1) do
+  def authenticate(conn, fun) when is_function(fun, 1) do
     case fun.(conn) do
       {:ok, principal} when not is_nil(principal) -> {:ok, principal}
       {:error, :forbidden} -> {:error, :forbidden}
@@ -99,16 +119,87 @@ defmodule Arbor.A2A.HttpPlug do
   defp dispatch(conn, bytes, opts, principal) do
     case Protocol.decode_request(bytes) do
       {:ok, method, params, id} ->
-        case version(conn) do
-          :ok ->
-            rpc_reply(conn, id, Server.dispatch(opts[:server], method, params, principal))
-
-          :error ->
-            json(conn, 200, Protocol.error(id, Error.new(:version_not_supported)))
-        end
+        dispatch_version(conn, opts, method, params, principal, id)
 
       {:error, id, error} ->
         json(conn, 200, Protocol.error(id, error))
+    end
+  end
+
+  defp dispatch_version(conn, opts, method, params, principal, id) do
+    with :ok <- version(conn), {:ok, conn} <- extensions(conn, opts[:server]) do
+      dispatch_method(conn, opts, method, params, principal, id)
+    else
+      :error -> rpc_reply(conn, id, {:error, Error.new(:version_not_supported)})
+      {:error, error} -> rpc_reply(conn, id, {:error, error})
+    end
+  end
+
+  defp dispatch_method(conn, opts, method, params, principal, id)
+       when method in ~w(SendStreamingMessage SubscribeToTask) do
+    case Server.stream(opts[:server], method, params, principal,
+           extensions: conn.assigns[:a2a_extensions] || []
+         ) do
+      {:ok, events} -> stream_reply(conn, events, &Protocol.response(id, &1), id)
+      error -> rpc_reply(conn, id, error)
+    end
+  end
+
+  defp dispatch_method(conn, opts, method, params, principal, id),
+    do:
+      rpc_reply(
+        conn,
+        id,
+        Server.dispatch(opts[:server], method, params, principal,
+          extensions: conn.assigns[:a2a_extensions] || []
+        )
+      )
+
+  @doc false
+  def stream_reply(conn, events, encode, id \\ nil) do
+    conn =
+      conn
+      |> put_resp_content_type("text/event-stream")
+      |> put_resp_header("cache-control", "no-store")
+      |> send_chunked(200)
+
+    Enum.reduce_while(events, conn, &send_stream_event(&1, &2, encode, id))
+  end
+
+  defp send_stream_event(event, conn, encode, id) do
+    bytes = stream_bytes(event, encode, id)
+
+    case chunk(conn, bytes) do
+      {:ok, conn} -> if match?({:error, _}, event), do: {:halt, conn}, else: {:cont, conn}
+      {:error, _} -> {:halt, conn}
+    end
+  end
+
+  defp stream_bytes(:heartbeat, _, _), do: ": keepalive\n\n"
+
+  defp stream_bytes({:error, %Error{} = error}, _, id),
+    do: "data: " <> Jason.encode!(Protocol.error(id, error)) <> "\n\n"
+
+  defp stream_bytes({:error, _}, encode, id),
+    do: stream_bytes({:error, Error.new(:internal_error)}, encode, id)
+
+  defp stream_bytes(value, encode, _), do: "data: " <> Jason.encode!(encode.(value)) <> "\n\n"
+
+  @doc false
+  def extensions(conn, server) do
+    requested =
+      get_req_header(conn, "a2a-extensions")
+      |> Enum.flat_map(&String.split(&1, ","))
+      |> Enum.map(&String.trim/1)
+
+    with {:ok, active} <- Extensions.negotiate(server.card, requested) do
+      conn = assign(conn, :a2a_extensions, active)
+
+      {:ok,
+       if(active == [],
+         do: conn,
+         else: put_resp_header(conn, "a2a-extensions", Enum.join(active, ","))
+       )}
     end
   end
 
@@ -117,7 +208,7 @@ defmodule Arbor.A2A.HttpPlug do
   defp rpc_reply(conn, id, {:error, %Error{} = error}),
     do: json(conn, 200, Protocol.error(id, error))
 
-  defp version(conn) do
+  def version(conn) do
     values = get_req_header(conn, "a2a-version")
 
     value =

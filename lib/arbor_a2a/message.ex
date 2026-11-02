@@ -1,6 +1,7 @@
 defmodule Arbor.A2A.Message do
   @moduledoc "Construct and validate ProtoJSON A2A messages and parts."
-  alias Arbor.A2A.Error
+  alias Arbor.A2A.{Error, Schema}
+  alias Arbor.A2A.Proto.Lf.A2a.V1, as: Wire
   @roles ~w(ROLE_USER ROLE_AGENT)
   def text(text, opts \\ []) when is_binary(text) do
     %{
@@ -13,7 +14,8 @@ defmodule Arbor.A2A.Message do
   end
 
   def validate(%{"messageId" => id, "role" => role, "parts" => [_ | _] = parts} = message) do
-    if nonempty?(id) and role in @roles and Enum.all?(parts, &valid_part?/1) and
+    if Schema.valid?(Wire.Message, message) and nonempty?(id) and role in @roles and
+         Enum.all?(parts, &valid_part?/1) and
          Enum.all?(~w(taskId contextId), fn k ->
            not Map.has_key?(message, k) or nonempty?(message[k])
          end) and

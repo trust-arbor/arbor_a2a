@@ -10,6 +10,9 @@ defmodule Arbor.A2A.MixProject do
       deps: deps(),
       elixirc_paths: if(Mix.env() == :test, do: ["lib", "test/support"], else: ["lib"]),
       description: "A2A protocol client and Plug server for the Arbor ecosystem",
+      # grpc_server's optional Cowboy >= 2.16 rejects CR/LF response headers.
+      # See docs/DEPENDENCY_SECURITY.md and scripts/check_dependency_policy.py.
+      hex: [ignore_advisories: ["EEF-CVE-2026-43966"]],
       source_url: "https://github.com/trust-arbor/arbor_a2a",
       package: [
         licenses: ["MIT"],
@@ -18,7 +21,7 @@ defmodule Arbor.A2A.MixProject do
           "A2A specification" => "https://a2a-protocol.org/"
         },
         files:
-          ~w(lib mix.exs mix.lock .formatter.exs README.md LICENSE CHANGELOG.md docs usage-rules.md)
+          ~w(lib priv mix.exs mix.lock .formatter.exs README.md LICENSE CHANGELOG.md docs usage-rules.md)
       ],
       docs: [
         main: "readme",
@@ -28,6 +31,8 @@ defmodule Arbor.A2A.MixProject do
           "docs/AUTHENTICATION.md",
           "docs/COVERAGE.md",
           "docs/TESTING.md",
+          "docs/REQUIREMENTS.md",
+          "docs/DEPENDENCY_SECURITY.md",
           "usage-rules.md"
         ]
       ]
@@ -46,6 +51,11 @@ defmodule Arbor.A2A.MixProject do
   defp deps do
     [
       {:arbor_rpc, "== 1.0.0-rc.4"},
+      {:protobuf, "~> 0.17"},
+      {:grpc, "~> 1.0"},
+      {:grpc_server, "~> 1.0", optional: true},
+      {:cowboy, ">= 2.16.0 and < 3.0.0", optional: true},
+      {:jcs, "~> 0.2"},
       {:jason, "~> 1.4"},
       {:plug, "~> 1.18.5 or ~> 1.19.5 or >= 1.20.3 and < 2.0.0"},
       {:mint, ">= 1.10.2 and < 2.0.0"},

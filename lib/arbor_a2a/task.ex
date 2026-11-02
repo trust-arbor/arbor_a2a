@@ -1,6 +1,6 @@
 defmodule Arbor.A2A.Task do
   @moduledoc "A2A task construction, state checks and history projection."
-  alias Arbor.A2A.{Error, Message, Timestamp}
+  alias Arbor.A2A.{Error, Message, Schema, Timestamp}
 
   @states ~w(TASK_STATE_SUBMITTED TASK_STATE_WORKING TASK_STATE_COMPLETED TASK_STATE_FAILED TASK_STATE_CANCELED TASK_STATE_INPUT_REQUIRED TASK_STATE_REJECTED TASK_STATE_AUTH_REQUIRED)
   @terminal ~w(TASK_STATE_COMPLETED TASK_STATE_FAILED TASK_STATE_CANCELED TASK_STATE_REJECTED)
@@ -22,7 +22,8 @@ defmodule Arbor.A2A.Task do
 
   def validate(%{"id" => id, "status" => %{"state" => state} = status} = task) do
     valid =
-      Message.nonempty?(id) and state in @states and
+      Schema.valid?(Arbor.A2A.Proto.Lf.A2a.V1.Task, task) and Message.nonempty?(id) and
+        state in @states and
         valid_context?(task) and valid_status?(status) and
         valid_items?(task, "history", &(Message.validate(&1) == :ok)) and
         valid_items?(task, "artifacts", &valid_artifact?/1)
