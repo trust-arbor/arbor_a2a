@@ -12,6 +12,23 @@ from qualify import ROOT, REPORTS, MANIFEST, run, source_digest
 IMAGE = json.loads(MANIFEST.read_text())['auth']['keycloak_image']
 RESOURCE = 'https://agent.example.test/a2a'
 
+
+def wait_for_keycloak(name, issuer, timeout=120):
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            with urllib.request.urlopen(issuer + '/.well-known/openid-configuration', timeout=2) as response:
+                assert response.status == 200
+                return
+        except OSError:
+            state = json.loads(run(['docker', 'inspect', '--format', '{{json .State}}', name], capture_output=True).stdout)
+            if not state['Running']:
+                raise RuntimeError(f"Keycloak exited before readiness (exit={state['ExitCode']}, OOMKilled={state['OOMKilled']}); inspect reports/auth-keycloak.log") from None
+            if time.monotonic() > deadline:
+                raise RuntimeError('Keycloak readiness deadline exceeded; inspect reports/auth-keycloak.log') from None
+            time.sleep(.25)
+
+
 @contextlib.contextmanager
 def keycloak():
     import uuid
@@ -27,26 +44,27 @@ def keycloak():
                  'users': [{'username': 'alice', 'enabled': True, 'emailVerified': True,
                             'firstName': 'Alice', 'lastName': 'Fixture', 'email': 'alice@example.test',
                             'credentials': [{'type': 'password', 'value': 'fixture-password', 'temporary': False}]}]}
-        Path(directory, 'realm.json').write_text(json.dumps(realm))
+        realm_file = Path(directory, 'realm.json')
+        realm_file.write_text(json.dumps(realm))
+        # These are fake fixture credentials. The image runs as UID 1000,
+        # which differs from the Linux runner's owner of the 0700 temp dir.
+        Path(directory).chmod(0o755)
+        realm_file.chmod(0o644)
         try:
-            run(['docker', 'run', '--detach', '--rm', '--name', name, '--memory', '1g', '--cpus', '2',
+            run(['docker', 'run', '--detach', '--name', name, '--memory', '1g', '--cpus', '2',
                  '--env', 'JAVA_OPTS_APPEND=-Xms64m -Xmx384m -XX:ActiveProcessorCount=2', '--publish', '127.0.0.1::8080',
                  '--volume', directory + ':/opt/keycloak/data/import:ro', IMAGE, 'start-dev', '--import-realm', '--hostname-strict=false'], capture_output=True)
             address = run(['docker', 'port', name, '8080/tcp'], capture_output=True).stdout.strip()
             issuer = 'http://' + address + '/realms/arbor-a2a'
-            deadline = time.monotonic() + 120
-            while True:
-                try:
-                    with urllib.request.urlopen(issuer + '/.well-known/openid-configuration', timeout=2) as response:
-                        assert response.status == 200
-                        break
-                except OSError:
-                    if time.monotonic() > deadline:
-                        raise RuntimeError('Keycloak readiness deadline exceeded')
-                    time.sleep(.25)
+            wait_for_keycloak(name, issuer)
             yield issuer
         finally:
-            subprocess.run(['docker', 'rm', '--force', name], cwd=ROOT, capture_output=True, timeout=30)
+            try:
+                logs = subprocess.run(['docker', 'logs', name], cwd=ROOT, capture_output=True, text=True, timeout=30)
+                REPORTS.mkdir(exist_ok=True)
+                (REPORTS / 'auth-keycloak.log').write_text(logs.stdout + logs.stderr)
+            finally:
+                subprocess.run(['docker', 'rm', '--force', name], cwd=ROOT, capture_output=True, timeout=30)
 
 
 def main():

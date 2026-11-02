@@ -36,7 +36,12 @@ regressions, strict compile/Credo/docs/formatting, runnable examples, cold archi
 installation and workflow lint. Canonical protobuf regeneration was byte-identical.
 All final peer receipts share source digest
 `cff0c241478add0ea46f5378573537aebd0744a1c444200cd5684b70df01003c`.
-These were local runs; CI workflows are configured for future pushes.
+These were the initial local runs. The first GitHub CI run passed both Elixir
+matrix jobs and the protocol conformance/interop lanes, but exposed a Linux
+permission error in the Keycloak import fixture before authentication assertions
+could run. The fixture now permits its non-root image user to read the import,
+detects container exit without waiting out readiness, and retains startup logs.
+Authentication assertion counts and protocol coverage are unchanged.
 
 The baseline original TCK lane contains **25 cases: 24 pass, one reviewed
 HTTP-content-type skip**. The expanded lane selects **157 original assertions**

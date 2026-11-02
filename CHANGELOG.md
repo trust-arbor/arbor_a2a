@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed Linux CI access to the non-root Keycloak import fixture; retain startup
+  logs and fail promptly when the container exits before readiness.
 - Initial A2A 1.0 JSON-RPC client/server foundation using ArborRPC envelopes.
 - Agent Cards, direct/task messages, task/history/list/cancel, identity-isolated
   bounded storage, HTTP auth hooks, version/errors and a bounded SSE codec.
