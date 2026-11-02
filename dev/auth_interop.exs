@@ -102,7 +102,9 @@ redirect = IO.iodata_to_binary(redirect)
 true = "S256" in context.provider_configuration.code_challenge_methods_supported
 
 {code, 0} =
-  System.cmd(".venv/bin/python", ["test/interop/keycloak_login.py", redirect, opts.state],
+  System.cmd(
+    Path.expand("../.venv/bin/python", __DIR__),
+    [Path.expand("../test/interop/keycloak_login.py", __DIR__), redirect, opts.state],
     stderr_to_stdout: false
   )
 

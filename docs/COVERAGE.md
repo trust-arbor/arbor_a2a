@@ -41,7 +41,9 @@ matrix jobs and the protocol conformance/interop lanes, but exposed a Linux
 permission error in the Keycloak import fixture before authentication assertions
 could run. The fixture now permits its non-root image user to read the import,
 detects container exit without waiting out readiness, and retains startup logs.
-Authentication assertion counts and protocol coverage are unchanged.
+The next CI run reached the real-provider checks and exposed a relative Python
+executable lookup; the helper now selects the repository interpreter by absolute
+path. Authentication assertion counts and protocol coverage are unchanged.
 
 The baseline original TCK lane contains **25 cases: 24 pass, one reviewed
 HTTP-content-type skip**. The expanded lane selects **157 original assertions**

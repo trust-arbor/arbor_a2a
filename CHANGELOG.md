@@ -4,6 +4,8 @@
 
 - Fixed Linux CI access to the non-root Keycloak import fixture; retain startup
   logs and fail promptly when the container exits before readiness.
+- Select the repository's Python interpreter by absolute path for real-provider
+  login qualification instead of relying on the developer's executable path.
 - Initial A2A 1.0 JSON-RPC client/server foundation using ArborRPC envelopes.
 - Agent Cards, direct/task messages, task/history/list/cancel, identity-isolated
   bounded storage, HTTP auth hooks, version/errors and a bounded SSE codec.

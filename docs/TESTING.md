@@ -81,7 +81,9 @@ The import fixture has explicit directory/file permissions so Keycloak's
 non-root user can read it on Linux as well as Docker Desktop. Readiness fails
 immediately if the owned container exits, and `reports/auth-keycloak.log` is
 retained before cleanup, including on startup failure. This fixture correction
-does not change or skip any of the twelve authentication assertions.
+does not change or skip any of the twelve authentication assertions. The browser
+login helper uses the absolute repository virtual-environment interpreter and
+script paths, so it does not depend on a developer's executable search path.
 
 ## Keeping evidence current
 
