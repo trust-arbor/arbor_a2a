@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { ClientFactory } from '@a2a-js/sdk/client';
+import { Message, TaskState, ListTasksRequest } from '@a2a-js/sdk';
+import { randomUUID } from 'node:crypto';
+
+const base = process.argv[2];
+const client = await new ClientFactory().createFromUrl(base);
+const message = text => Message.fromJSON({messageId: randomUUID(), role: 'ROLE_USER', parts: [{text}]});
+const task = await client.sendMessage({message: message('official SDK')});
+assert.equal(task.status.state, TaskState.TASK_STATE_COMPLETED);
+assert.equal(task.history.at(-1).parts[0].content.value, 'Echo: official SDK');
+const fetched = await client.getTask({id: task.id, historyLength: 1});
+assert.equal(fetched.id, task.id);
+assert.equal(fetched.history.length, 1);
+const listed = await client.listTasks(ListTasksRequest.fromJSON({contextId: task.contextId}));
+assert.equal(listed.tasks.length, 1);
+const direct = await client.sendMessage({message: message('direct')});
+assert.equal(direct.parts[0].content.value, 'direct reply');
+await assert.rejects(() => client.getTask({id: 'missing'}));
+console.log(JSON.stringify({peer: '@a2a-js/sdk', version: '1.3.0', direction: 'sdk-client-to-elixir', assertions: 7}));
